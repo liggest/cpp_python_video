@@ -1,6 +1,6 @@
 find_package(PythonLibs REQUIRED)
 set(Qt5_DIR D:/Qt/Qt5.14.2/5.14.2/msvc2017_64/lib/cmake/Qt5)
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 
 add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp)
 
@@ -16,6 +16,8 @@ add_custom_command(
 )
 
 install(TARGETS cpp_python_video DESTINATION bin)
+install(FILES read_video.py DESTINATION bin)
+install(FILES ../resource/video.mp4 DESTINATION resource)
 install(FILES ${CMAKE_BINARY_DIR}/src/Qt5Core.dll DESTINATION bin)
 install(FILES ${CMAKE_BINARY_DIR}/src/Qt5Gui.dll DESTINATION bin)
 install(FILES ${CMAKE_BINARY_DIR}/src/Qt5Widgets.dll DESTINATION bin)
