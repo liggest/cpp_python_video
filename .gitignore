@@ -1,5 +1,7 @@
 # Custom
 .vs/
+build/
+out/
 
 # Prerequisites
 *.d
