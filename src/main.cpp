@@ -8,6 +8,7 @@
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
+	Py_SetPythonHome(L"../py/.venv");
 	Py_Initialize();
 	import_array();
 

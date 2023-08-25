@@ -1,0 +1,4 @@
+[venv]
+with_pip = true
+in_project = true
+backend = "conda"
