@@ -12,50 +12,50 @@ int main(int argc, char *argv[]) {
 	Py_Initialize();
 	import_array();
 
-	// µ¼Èë Python Ä£¿é
+	// å¯¼å…¥ Python æ¨¡å—
 	PyObject *pModule = PyImport_ImportModule("read_video");
 	if (pModule == nullptr) {
 		std::cerr << "Cannot import read_video.py" << std::endl;
 		return 1;
 	}
 
-	// »ñÈ¡Ä£¿éÖĞµÄ read_video º¯Êı
+	// è·å–æ¨¡å—ä¸­çš„ read_video å‡½æ•°
 	PyObject *pFunc = PyObject_GetAttrString(pModule, "read_video");
 	if (pFunc == nullptr) {
 		std::cerr << "Cannot find 'read_video' function" << std::endl;
 		return 1;
 	}
 
-	// µ÷ÓÃ read_video º¯Êı
+	// è°ƒç”¨ read_video å‡½æ•°
 	PyObject *pVideoPath = PyUnicode_FromString("../resource/video.mp4");
 	PyObject *pCap = PyObject_CallObject(pFunc, PyTuple_Pack(1, pVideoPath));
 
-	// ¼ì²éÊÇ·ñ³É¹¦´ò¿ªÊÓÆµÎÄ¼ş
+	// æ£€æŸ¥æ˜¯å¦æˆåŠŸæ‰“å¼€è§†é¢‘æ–‡ä»¶
 	PyObject *pIsOpened = PyObject_CallMethod(pCap, "isOpened", nullptr);
 	if (pIsOpened == Py_False) {
 		std::cerr << "Cannot open the video file" << std::endl;
 		return 1;
 	}
 
-	// ´´½¨ VideoWidget
+	// åˆ›å»º VideoWidget
 	VideoWidget videoWidget;
 	videoWidget.show();
 
-	// ´´½¨ QTimer£¬ÓÃÓÚ¶¨Ê±¸üĞÂÊÓÆµÖ¡
+	// åˆ›å»º QTimerï¼Œç”¨äºå®šæ—¶æ›´æ–°è§†é¢‘å¸§
 	QTimer timer;
-	timer.setInterval(30);  // °´30msµÄ¼ä¸ô¸üĞÂÊÓÆµÖ¡
+	timer.setInterval(30);  // æŒ‰30msçš„é—´éš”æ›´æ–°è§†é¢‘å¸§
 
-	// ÔÚ Qt ²ÛÖĞÁ¬½Ó QTimer µÄ³¬Ê±ĞÅºÅ
+	// åœ¨ Qt æ§½ä¸­è¿æ¥ QTimer çš„è¶…æ—¶ä¿¡å·
 	QObject::connect(&timer, &QTimer::timeout, [&]() {
 		PyObject *pRetVal = PyObject_CallMethod(pCap, "read", nullptr);
 		PyObject *pIsRead = PyTuple_GetItem(pRetVal, 0);
 		PyObject *pFrame = PyTuple_GetItem(pRetVal, 1);
 
 		if (pIsRead == Py_False) {
-			timer.stop();  // ÊÓÆµ²¥·Å½áÊø
+			timer.stop();  // è§†é¢‘æ’­æ”¾ç»“æŸ
 		}
 
-		// ½« Python µÄ numpy.array ×ª»»Îª QImage
+		// å°† Python çš„ numpy.array è½¬æ¢ä¸º QImage
 		PyArrayObject *pFrameArray = reinterpret_cast<PyArrayObject *>(pFrame);
 		int rows = PyArray_SHAPE(pFrameArray)[0];
 		int cols = PyArray_SHAPE(pFrameArray)[1];
@@ -63,16 +63,16 @@ int main(int argc, char *argv[]) {
 
 		QImage image((uchar *)PyArray_DATA(pFrameArray), cols, rows, QImage::Format_BGR888);
 
-		// ÔÚ VideoWidget ÖĞÏÔÊ¾ÊÓÆµÖ¡
+		// åœ¨ VideoWidget ä¸­æ˜¾ç¤ºè§†é¢‘å¸§
 		videoWidget.setImage(image);
 		});
 
 	timer.start();
 
-	// ÔËĞĞ Qt Ó¦ÓÃ
+	// è¿è¡Œ Qt åº”ç”¨
 	int ret = app.exec();
 
-	// ÊÍ·Å Python ¶ÔÏó
+	// é‡Šæ”¾ Python å¯¹è±¡
 	Py_DECREF(pModule);
 	Py_DECREF(pFunc);
 	Py_DECREF(pVideoPath);
