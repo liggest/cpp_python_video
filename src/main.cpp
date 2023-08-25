@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 		int cols = PyArray_SHAPE(pFrameArray)[1];
 		int channels = PyArray_SHAPE(pFrameArray)[2];
 
-		QImage image((uchar *)PyArray_DATA(pFrameArray), cols, rows, QImage::Format_RGB888);
+		QImage image((uchar *)PyArray_DATA(pFrameArray), cols, rows, QImage::Format_BGR888);
 
 		// 在 VideoWidget 中显示视频帧
 		videoWidget.setImage(image);
