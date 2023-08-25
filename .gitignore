@@ -2,6 +2,7 @@
 .vs/
 build/
 out/
+.idea/
 
 # Prerequisites
 *.d

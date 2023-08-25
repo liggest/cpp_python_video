@@ -9,7 +9,7 @@ include_directories("D:/Anaconda3/Lib/site-packages/numpy/core/include")
 target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui)
 
 
-# ¥¶¿Ì windeployqt
+# Â§ÑÁêÜ windeployqt
 set(imported_location "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64/bin/windeployqt.exe")
 
 if(EXISTS ${imported_location})
@@ -29,7 +29,7 @@ install(
     DESTINATION bin
 )
 
-# ∏¥÷∆ exe ∫Õ py
+# Â§çÂà∂ exe Âíå py
 install(TARGETS cpp_python_video DESTINATION bin)
 install(FILES read_video.py DESTINATION bin)
 
