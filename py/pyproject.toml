@@ -1,0 +1,15 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "",email = ""},
+]
+dependencies = [
+    "numpy>=1.25.2",
+    "opencv-python>=4.8.0.76",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
