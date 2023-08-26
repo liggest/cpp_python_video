@@ -12,7 +12,13 @@ int main(int argc, char *argv[]) {
 	Py_Initialize();
 	import_array();
 
-	// 导入 Python 模块
+    if (__APPLE__){
+        PyRun_SimpleString("import sys");
+        PyRun_SimpleString("sys.path.append(\".\")");
+    }
+
+
+    // 导入 Python 模块
 	PyObject *pModule = PyImport_ImportModule("read_video");
 	if (pModule == nullptr) {
 		std::cerr << "Cannot import read_video.py" << std::endl;

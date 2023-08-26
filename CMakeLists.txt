@@ -10,4 +10,11 @@ endif()
     add_subdirectory(src)
 
 install(DIRECTORY resource DESTINATION .)
-# install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/py ${CMAKE_INSTALL_PREFIX}/py)")
+
+# 符号链接
+if(Win32)
+    #试试 vbs 开个管理员？
+else()
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+    ${CMAKE_SOURCE_DIR}/py ${CMAKE_INSTALL_PREFIX}/py)")
+endif()

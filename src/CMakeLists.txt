@@ -9,11 +9,11 @@ if(WIN32)
     find_package(PythonLibs REQUIRED)
     # find_package(Python COMPONENTS Interpreter Development NumPy)
 elseif(APPLE)
-    set(PYTHON_INCLUDE_DIRS /opt/miniconda3/include/python3.9)
-    set(PYTHON_LIBRARIES /opt/miniconda3/lib/libpython3.9.dylib)
+    set(PYTHON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/py/.venv/include/python3.10)
+    set(PYTHON_LIBRARIES ${CMAKE_SOURCE_DIR}/py/.venv/lib/libpython3.10.dylib)
 
     set(CMAKE_PREFIX_PATH "/Users/duolanda/Qt/6.3.1/macos/lib/cmake")
-    find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED ) #MacOS
+    find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED )
 endif()
 
 # 生成可执行文件
@@ -29,7 +29,7 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui)
 elseif(APPLE)
     include_directories(${PYTHON_INCLUDE_DIRS})
-    include_directories("/opt/miniconda3/lib/python3.9/site-packages/numpy/core/include")
+    include_directories("${CMAKE_SOURCE_DIR}/py/.venv/lib/python3.10/site-packages/numpy/core/include")
     target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES} Qt6::Core Qt6::Widgets Qt6::Gui)
 endif()
 
@@ -47,7 +47,8 @@ if(WIN32)
     endif()
 
     add_custom_command(TARGET cpp_python_video POST_BUILD
-            COMMAND Qt5::windeployqt --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "$<TARGET_FILE_DIR:cpp_python_video>/$<TARGET_FILE_NAME:cpp_python_video>"
+            COMMAND Qt5::windeployqt --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt"
+            "$<TARGET_FILE_DIR:cpp_python_video>/$<TARGET_FILE_NAME:cpp_python_video>"
         )
 
     install(
@@ -59,4 +60,3 @@ endif()
 # 复制 exe 和 py
 install(TARGETS cpp_python_video DESTINATION bin)
 install(FILES read_video.py DESTINATION bin)
-
