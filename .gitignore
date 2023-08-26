@@ -3,6 +3,9 @@
 build/
 out/
 .idea/
+cmake-build-relwithdebinfo/
+.vscode/
+.DS_Store
 
 # Prerequisites
 *.d
