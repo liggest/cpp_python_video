@@ -12,10 +12,10 @@ int main(int argc, char *argv[]) {
 	Py_Initialize();
 	import_array();
 
-    if (__APPLE__){
-        PyRun_SimpleString("import sys");
-        PyRun_SimpleString("sys.path.append(\".\")");
-    }
+#ifdef __APPLE__
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append(\".\")");
+#endif 
 
 
     // 导入 Python 模块
