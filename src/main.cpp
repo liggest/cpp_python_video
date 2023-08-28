@@ -100,17 +100,23 @@ int main(int argc, char *argv[]) {
 	long long totalLatency = 0;
 	long framePassed = 0;
 
+    PyObject *pRetVal = nullptr;
+
 	// 在 Qt 槽中连接 QTimer 的超时信号
 	QObject::connect(&timer, &QTimer::timeout, [&]() {
+        if(pRetVal != nullptr){
+            Py_DECREF(pRetVal);
+        }
 		//PyObject *pRetVal = PyObject_CallMethod(pCap, "read", nullptr);
 		// TODO: 这些需要 Py_DECREF 吗？
-		PyObject *pRetVal = PyObject_CallObject(pReadVideo, nullptr);
+		pRetVal = PyObject_CallObject(pReadVideo, nullptr);
 		PyObject *pIsRead = PyTuple_GetItem(pRetVal, 0);
 		PyObject *pFrame = PyTuple_GetItem(pRetVal, 1);
 		PyObject *pTimeNs = PyTuple_GetItem(pRetVal, 2);
 		
 		if (pIsRead == Py_False) {
 			timer.stop();  // 视频播放结束
+            Py_DECREF(pRetVal);
 			return;
 		}
 
