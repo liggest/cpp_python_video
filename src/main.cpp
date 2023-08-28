@@ -4,8 +4,14 @@
 #include <QApplication>
 #include <QTimer>
 #include <chrono>
+#include <thread>
 #include "VideoWidget.h"
 
+
+void play_audio(){
+    std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
+    std::system(command.c_str());
+}
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
@@ -147,12 +153,16 @@ int main(int argc, char *argv[]) {
 		}
 		});
 
-	timer.start();
+
+    timer.start();
+    std::thread audio_thread(play_audio);
 
 	// 运行 Qt 应用
 	int ret = app.exec();
 
-	// 释放 Python 对象
+    audio_thread.join();
+
+    // 释放 Python 对象
 	Py_DECREF(pModule);
 	//Py_DECREF(pFunc);
 	Py_DECREF(pInitCapture);
