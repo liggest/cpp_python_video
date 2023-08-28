@@ -1,6 +1,7 @@
 [project]
-name = ""
-version = ""
+name = "video_reader"
+# version = ""
+dynamic = ["version"]
 description = ""
 authors = [
     {name = "",email = ""},
@@ -13,3 +14,9 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+version = { source = "file", path = "src/video_reader/__version__.py" }

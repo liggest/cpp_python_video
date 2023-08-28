@@ -59,4 +59,4 @@ endif()
 
 # 复制 exe 和 py
 install(TARGETS cpp_python_video DESTINATION bin)
-install(FILES read_video.py DESTINATION bin)
+# install(FILES read_video.py DESTINATION bin)

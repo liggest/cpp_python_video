@@ -17,11 +17,13 @@ int main(int argc, char *argv[]) {
 	PyRun_SimpleString("sys.path.append(\".\")");
 #endif 
 
-
     // 导入 Python 模块
-	PyObject *pModule = PyImport_ImportModule("read_video");
+	//PyObject *pModule = PyImport_ImportModule("read_video");
+	PyObject *pModule = PyImport_ImportModule("video_reader.opencv");
+
 	if (pModule == nullptr) {
-		std::cerr << "Cannot import read_video.py" << std::endl;
+		//std::cerr << "Cannot import read_video.py" << std::endl;
+		std::cerr << "Cannot import video_reader.opencv" << std::endl;
 		return 1;
 	}
 
