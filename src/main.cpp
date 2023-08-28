@@ -13,11 +13,6 @@ int main(int argc, char *argv[]) {
 	Py_Initialize();
 	import_array();
 
-#ifdef __APPLE__
-	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append(\".\")");
-#endif 
-
     // 导入 Python 模块
 	//PyObject *pModule = PyImport_ImportModule("read_video");
 	PyObject *pModule = PyImport_ImportModule("video_reader.opencv");
@@ -161,8 +156,6 @@ int main(int argc, char *argv[]) {
 	Py_DECREF(pVideoPath);
 	Py_DECREF(pCap);
 	Py_DECREF(pSize);
-	Py_DECREF(pWidth);
-	Py_DECREF(pHeight);
 	Py_DECREF(pFPS);
 	//Py_DECREF(pIsOpened);
 
