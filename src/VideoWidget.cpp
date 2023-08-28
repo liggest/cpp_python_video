@@ -9,6 +9,12 @@ void VideoWidget::setImage(const QImage &image)
 	update();
 }
 
+void VideoWidget::setImageAndSize(const QImage& image)
+{
+	setImage(image);
+	resize(m_image.width(), m_image.height());
+}
+
 void VideoWidget::paintEvent(QPaintEvent *event)
 {
 	QPainter painter(this);

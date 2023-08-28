@@ -53,14 +53,18 @@ int main(int argc, char *argv[]) {
 	QTimer timer;
 	timer.setInterval(30);  // 按30ms的间隔更新视频帧
 
+	bool sized = false;
+
 	// 在 Qt 槽中连接 QTimer 的超时信号
 	QObject::connect(&timer, &QTimer::timeout, [&]() {
 		PyObject *pRetVal = PyObject_CallMethod(pCap, "read", nullptr);
 		PyObject *pIsRead = PyTuple_GetItem(pRetVal, 0);
 		PyObject *pFrame = PyTuple_GetItem(pRetVal, 1);
-
-		if (pIsRead == Py_False) {
+		
+		//if (pIsRead == Py_False) {
+		if (Py_IsFalse(pIsRead)) {
 			timer.stop();  // 视频播放结束
+			return;
 		}
 
 		// 将 Python 的 numpy.array 转换为 QImage
@@ -71,8 +75,15 @@ int main(int argc, char *argv[]) {
 
 		QImage image((uchar *)PyArray_DATA(pFrameArray), cols, rows, QImage::Format_BGR888);
 
-		// 在 VideoWidget 中显示视频帧
-		videoWidget.setImage(image);
+		if (sized) {
+			// 在 VideoWidget 中显示视频帧
+			videoWidget.setImage(image);
+		}
+		else {
+			videoWidget.setImageAndSize(image);
+			sized = true;
+		}
+
 		});
 
 	timer.start();

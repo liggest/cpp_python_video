@@ -11,6 +11,7 @@ class VideoWidget : public QWidget
 public:
 	explicit VideoWidget(QWidget *parent = nullptr);
 	void setImage(const QImage &image);
+	void setImageAndSize(const QImage& image);
 
 protected:
 	void paintEvent(QPaintEvent *event) override;
