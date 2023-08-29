@@ -22,5 +22,5 @@ def read_video():
 def video_size():
     return cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-def video_fps():
-    return cap.get(cv2.CAP_PROP_FPS)
+def video_frames():
+    return cap.get(cv2.CAP_PROP_FRAME_COUNT), cap.get(cv2.CAP_PROP_FPS)
