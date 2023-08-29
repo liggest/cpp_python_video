@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	// 获取模块中的 video_fps 函数
-	PyObject *pVideoFPS = PyObject_GetAttrString(pModule, "video_fps");
-	if (pVideoFPS == nullptr) {
-		std::cerr << "Cannot find 'video_fps' function" << std::endl;
+	PyObject *pVideoFrames = PyObject_GetAttrString(pModule, "video_frames");
+	if (pVideoFrames == nullptr) {
+		std::cerr << "Cannot find 'video_frames' function" << std::endl;
 		return 1;
 	}
 
@@ -90,16 +90,28 @@ int main(int argc, char *argv[]) {
 		videoWidget.setSize(width, height);
 	}
 
-	// 创建 QTimer，用于定时更新视频帧
-	QTimer timer;
-	PyObject* pFPS = PyObject_CallObject(pVideoFPS, nullptr);
+	PyObject* pFrameInfo = PyObject_CallObject(pVideoFrames, nullptr);
+	PyObject* pFrameCount = PyTuple_GetItem(pFrameInfo, 0);
+	PyObject* pFPS = PyTuple_GetItem(pFrameInfo, 1);
+	int totalFrames = static_cast<int>(PyFloat_AsDouble(pFrameCount));
+	if (totalFrames < 0 && PyErr_Occurred()) {
+		PyErr_Print();
+	}
 	//int fps = PyLong_AsLong(pFPS);
 	int fps = static_cast<int>(PyFloat_AsDouble(pFPS));
-	std::cout << "fps: " << fps << std::endl;
 	if (fps < 0) {
 		if (PyErr_Occurred()) PyErr_Print();
 		fps = 30;  // 默认 1000 / 30;
 	}
+	std::cout << "fps: " << fps << " total frames: " << totalFrames << std::endl;
+	long long totalSeconds = totalFrames / fps;
+	if (totalFrames % fps) {  // 剩余的帧不足一秒，当做一秒算
+		totalSeconds += 1;
+	}
+	std::cout << "Video Duration: " << totalSeconds / 60 << "m" << totalSeconds % 60 << "s (" << totalSeconds << "s)" << std::endl;
+
+	// 创建 QTimer，用于定时更新视频帧
+	QTimer timer;
 	timer.setInterval(1000 / fps);  // 按 fps 的间隔更新视频帧
 	//timer.setInterval(30);  // 按30ms的间隔更新视频帧
 
@@ -107,6 +119,12 @@ int main(int argc, char *argv[]) {
 	long framePassed = 0;
 
     PyObject *pRetVal = nullptr;
+
+	auto now = std::chrono::system_clock::now();
+	auto nowNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
+	auto epochNs = nowNs.time_since_epoch();
+	long long timeNs = epochNs.count();
+	auto startTime = now;
 
 	// 在 Qt 槽中连接 QTimer 的超时信号
 	QObject::connect(&timer, &QTimer::timeout, [&]() {
@@ -123,6 +141,10 @@ int main(int argc, char *argv[]) {
 		if (pIsRead == Py_False) {
 			timer.stop();  // 视频播放结束
             Py_DECREF(pRetVal);
+			now = std::chrono::system_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - startTime);
+			long long seconds = duration.count();
+			std::cout << "Video Playback Time: " << seconds / 60 << "m" << seconds % 60 << "s (" << seconds << "s)" << std::endl;
 			return;
 		}
 
@@ -137,10 +159,10 @@ int main(int argc, char *argv[]) {
 		// 在 VideoWidget 中显示视频帧
 		videoWidget.setImage(image);
 		
-		auto now = std::chrono::system_clock::now();
-		auto now_ns = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
-		auto epoch = now_ns.time_since_epoch();
-		long long timeNs = epoch.count();
+		now = std::chrono::system_clock::now();
+		nowNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
+		epochNs = nowNs.time_since_epoch();
+		timeNs = epochNs.count();
 		long long timeNsPY = PyLong_AsLongLong(pTimeNs);
 		if (timeNsPY < 0 && PyErr_Occurred()) {
 			PyErr_Print();
@@ -151,8 +173,7 @@ int main(int argc, char *argv[]) {
 		if (framePassed % fps == 0) {
 			std::cout << "[Latency (ns)] Total: " << totalLatency << " \tAverage: " << totalLatency / framePassed << " \tframePassed: " << framePassed << std::endl;
 		}
-		});
-
+	});
 
     timer.start();
     std::thread audio_thread(play_audio);
@@ -168,7 +189,7 @@ int main(int argc, char *argv[]) {
 	Py_DECREF(pInitCapture);
 	Py_DECREF(pReadVideo);
 	Py_DECREF(pVideoSize);
-	Py_DECREF(pVideoFPS);
+	Py_DECREF(pFrameInfo);
 	Py_DECREF(pVideoPath);
 	Py_DECREF(pCap);
 	Py_DECREF(pSize);
