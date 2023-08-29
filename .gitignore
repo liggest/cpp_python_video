@@ -6,6 +6,7 @@ out/
 cmake-build-relwithdebinfo/
 .vscode/
 .DS_Store
+.cache
 
 # Prerequisites
 *.d

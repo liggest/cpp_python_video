@@ -7,7 +7,8 @@
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
-	PluginManager pm(&PyAPIPlugin(&app));
+    PyAPIPlugin pyapi = PyAPIPlugin(&app);
+	PluginManager pm(&pyapi);
 	
 	int ret = pm.run();
 	return ret;
