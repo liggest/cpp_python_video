@@ -6,13 +6,13 @@ class PluginManager
 
 public:
 	PluginManager();
-	PluginManager(Plugin *plugin);
+	PluginManager(Plugin *_plugin);
 
-	PluginManager* setPlugin(Plugin *plugin);
+	PluginManager* setPlugin(Plugin *_plugin);
 	int run();
 
 private:
-	Plugin *_plugin = nullptr;
+	Plugin *plugin = nullptr;
 };
 
 

@@ -6,20 +6,20 @@
 
 PluginManager::PluginManager() {}
 
-PluginManager::PluginManager(Plugin *plugin) : _plugin(plugin) {}
+PluginManager::PluginManager(Plugin *_plugin) : plugin(_plugin) {}
 
-PluginManager* PluginManager::setPlugin(Plugin *plugin)
+PluginManager* PluginManager::setPlugin(Plugin *_plugin)
 {
-    _plugin = plugin;
+    plugin = _plugin;
     return this;
 }
 
 
 int PluginManager::run()
 {
-    if (!_plugin) {
+    if (!plugin) {
         std::cerr << "No plugin to run in PluginManager" << std::endl;
         return 0;
     }
-    return _plugin->run();
+    return plugin->run();
 }
