@@ -1,6 +1,8 @@
 #include <iostream>
+//#include <fstream>
 #include <chrono>
 #include <thread>
+#include <direct.h>
 
 #include <Python.h>
 #include <numpy/arrayobject.h>
@@ -13,16 +15,116 @@
 
 PyAPIPlugin::PyAPIPlugin(QApplication *_app) : app(_app) {}
 
-void PyAPIPlugin::play_audio() {
+void PyAPIPlugin::playAudio() {
 	std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
 	std::system(command.c_str());
+}
+// Get path of .venv
+int getPythonPath(wchar_t *pathBuffer, size_t size) {
+	wchar_t* bufferPtr = _wgetcwd(pathBuffer, size);
+	if (bufferPtr == nullptr) {
+		std::cerr << "Cannot get current working directory" << std::endl;
+		return 1;
+	}
+	std::wstring cwd(bufferPtr);
+	
+#ifdef _WIN32
+	wchar_t *separator = L"\\";
+#else
+	wchar_t* separator = L"/";
+#endif
+
+	std::wstring parent = cwd.substr(0, cwd.find_last_of(separator));
+	//std::wcout << "parent path: " << parent << std::endl;
+	std::wstring pyPath = parent.append(separator).append(L"py").append(separator).append(L".venv");
+	std::wcout << "python path: " << pyPath << std::endl;
+	wcscpy(pathBuffer, pyPath.c_str());
+	return 0;
+}
+// Add .venv to PATH
+void addPythonPath(wchar_t *path) {
+	// Add python path to PATH
+	//std::wfstream file("example.txt");
+	//std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+	wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+	//file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+	std::wcout << L"Adding python path to PATH" << std::endl;
+	//file << L"Adding python path to PATH" << std::endl;
+	std::wstring envPath(L"");
+#ifdef _WIN32
+	envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
+#else
+	envPath.append(path).append(L"/lib").append(L":").append(_wgetenv(L"PATH"));
+#endif
+	std::wcout << L"path: " << path << std::endl;
+	//file << L"path: " << path << std::endl;
+	//std::wcout << L"envPath: " << envPath << std::endl;
+	_wputenv_s(L"PATH", envPath.c_str());
+	std::wcout << L"==================================" << std::endl;
+	//file << L"==================================" << std::endl;
+	//std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+	wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+	//file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+	//file.close();
+}
+
+void initPython()
+{
+	wchar_t path[256];
+	getPythonPath(path, 256);
+	addPythonPath(path);
+
+	PyStatus status;
+
+	PyConfig config;
+	PyConfig_InitPythonConfig(&config);
+
+	// Set PYTHONHOME
+	status = PyConfig_SetString(&config, &config.home, path);
+	if (PyStatus_Exception(status)) {
+		goto exception;
+	}
+
+	// Set PYTHONPATH
+	status = PyConfig_SetString(&config, &config.pythonpath_env, path);
+	if (PyStatus_Exception(status)) {
+		goto exception;
+	}
+
+	/* Set the program name. Implicitly preinitialize Python. */
+//#ifdef _WIN32
+//	status = PyConfig_SetString(&config, &config.program_name, wcscat(path, L"\\python"));
+//#else
+//	status = PyConfig_SetString(&config, &config.program_name, wcscat(path, L"/python"));
+//#endif
+//	if (PyStatus_Exception(status)) {
+//		goto exception;
+//	}
+
+	status = Py_InitializeFromConfig(&config);
+	if (PyStatus_Exception(status)) {
+		goto exception;
+	}
+	PyConfig_Clear(&config);
+	return;
+
+exception:
+	PyConfig_Clear(&config);
+	Py_ExitStatusException(status);
 }
 
 int PyAPIPlugin::run()
 {
-	Py_SetPythonHome(L"../py/.venv");
-	Py_Initialize();
+	//Py_SetPythonHome(path);
+	//Py_Initialize();
+	initPython();
 	import_array();
+
+	std::wcout << "PYTHONHOME: " << Py_GetPythonHome() << std::endl;
+	std::wcout << "PROGRAM_NAME: " << Py_GetProgramName() << std::endl;
+	std::wcout << "PROGRAM_FULL_PATH: " << Py_GetProgramFullPath() << std::endl;
+	std::wcout << "EXEC_PREFIX: " << Py_GetExecPrefix() << std::endl;
+	std::wcout << "PYTHONPATH: " << Py_GetPath() << std::endl;
 
 	// 导入 Python 模块
 	//PyObject *pModule = PyImport_ImportModule("read_video");
@@ -31,6 +133,7 @@ int PyAPIPlugin::run()
 	if (pModule == nullptr) {
 		//std::cerr << "Cannot import read_video.py" << std::endl;
 		std::cerr << "Cannot import video_reader.opencv" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
 		return 1;
 	}
 
@@ -38,24 +141,28 @@ int PyAPIPlugin::run()
 	PyObject* pInitCapture = PyObject_GetAttrString(pModule, "init_capture");
 	if (pInitCapture == nullptr) {
 		std::cerr << "Cannot find 'init_capture' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
 		return 1;
 	}
 	// 获取模块中的 read_video 函数
 	PyObject* pReadVideo = PyObject_GetAttrString(pModule, "read_video");
 	if (pReadVideo == nullptr) {
 		std::cerr << "Cannot find 'read_video' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
 		return 1;
 	}
 	// 获取模块中的 video_size 函数
 	PyObject* pVideoSize = PyObject_GetAttrString(pModule, "video_size");
 	if (pVideoSize == nullptr) {
 		std::cerr << "Cannot find 'video_size' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
 		return 1;
 	}
 	// 获取模块中的 video_fps 函数
 	PyObject* pVideoFrames = PyObject_GetAttrString(pModule, "video_frames");
 	if (pVideoFrames == nullptr) {
 		std::cerr << "Cannot find 'video_frames' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
 		return 1;
 	}
 
@@ -180,7 +287,7 @@ int PyAPIPlugin::run()
 		});
 
 	timer.start();
-	std::thread audio_thread(play_audio);
+	std::thread audio_thread(playAudio);
 
 	// 运行 Qt 应用
 	int ret = app->exec();

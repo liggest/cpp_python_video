@@ -19,6 +19,7 @@ if(WIN32)
     # message(STATUS  "Python_INCLUDE_DIRS  ${Python_INCLUDE_DIRS}")
     # message(STATUS  "Python_NumPy_INCLUDE_DIRS  ${Python_NumPy_INCLUDE_DIRS}")
     # message(STATUS  "Python_LIBRARIES  ${Python_LIBRARIES}")
+    # message(STATUS  "Python_RUNTIME_LIBRARY_DIRS  ${Python_RUNTIME_LIBRARY_DIRS}")
     # message(STATUS  "Python_STDLIB  ${Python_STDLIB}")
 
 elseif(APPLE)
