@@ -2,12 +2,15 @@
 //#include <fstream>
 #include <chrono>
 #include <thread>
-#include <direct.h>
+#include <filesystem>
+#include <codecvt>
 
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <QApplication>
 #include <QTimer>
+#include <locale>
+
 
 #include "VideoWidget.h"
 
@@ -19,59 +22,91 @@ void PyAPIPlugin::playAudio() {
 	std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
 	std::system(command.c_str());
 }
-// Get path of .venv
-int getPythonPath(wchar_t *pathBuffer, size_t size) {
-	wchar_t* bufferPtr = _wgetcwd(pathBuffer, size);
-	if (bufferPtr == nullptr) {
-		std::cerr << "Cannot get current working directory" << std::endl;
-		return 1;
-	}
-	std::wstring cwd(bufferPtr);
-	
-#ifdef _WIN32
-	wchar_t *separator = L"\\";
-#else
-	wchar_t* separator = L"/";
-#endif
 
-	std::wstring parent = cwd.substr(0, cwd.find_last_of(separator));
-	//std::wcout << "parent path: " << parent << std::endl;
-	std::wstring pyPath = parent.append(separator).append(L"py").append(separator).append(L".venv");
-	std::wcout << "python path: " << pyPath << std::endl;
-	wcscpy(pathBuffer, pyPath.c_str());
-	return 0;
+std::wstring getEnvVarAsWstring(const wchar_t* name) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    const char* value = std::getenv(converter.to_bytes(name).c_str());
+    return value ? converter.from_bytes(value) : L"";
+}
+
+void setEnvVarAsWstring(const wchar_t* name, const std::wstring& value) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::string name_str = converter.to_bytes(name);
+    std::string value_str = converter.to_bytes(value);
+    setenv(name_str.c_str(), value_str.c_str(), 1);
+}
+
+// Get path of .venv
+int getPythonPath(std::filesystem::path& pythonPath) {
+    std::error_code ec;
+    std::filesystem::path cwd = std::filesystem::current_path(ec);
+    if (ec) {
+        std::cerr << "Cannot get current working directory" << std::endl;
+        return 1;
+    }
+
+    std::filesystem::path parent = cwd.parent_path();
+    std::cout << "parent path: " << parent << std::endl;
+
+    std::filesystem::path pyPath = parent / "py" / ".venv";
+    std::cout << "python path: " << pyPath << std::endl;
+
+    pythonPath = pyPath;
+    return 0;
 }
 // Add .venv to PATH
-void addPythonPath(wchar_t *path) {
-	// Add python path to PATH
-	//std::wfstream file("example.txt");
-	//std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-	wprintf(L"PATH=%s", _wgetenv(L"PATH"));
-	//file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-	std::wcout << L"Adding python path to PATH" << std::endl;
-	//file << L"Adding python path to PATH" << std::endl;
-	std::wstring envPath(L"");
+void addPythonPath(const std::filesystem::path& pythonPath) {
 #ifdef _WIN32
-	envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
+    std::wstring pythonPath = pythonPath.wstring()
+    // because windows can run, we don't change
+    // Add python path to PATH
+    //std::wfstream file("example.txt");
+    //std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+    wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+    //file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+    std::wcout << L"Adding python path to PATH" << std::endl;
+    //file << L"Adding python path to PATH" << std::endl;
+    std::wstring envPath(L"");
+    envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
+    std::wcout << L"path: " << path << std::endl;
+    //file << L"path: " << path << std::endl;
+    //std::wcout << L"envPath: " << envPath << std::endl;
+    _wputenv_s(L"PATH", envPath.c_str());
+    std::wcout << L"==================================" << std::endl;
+    //file << L"==================================" << std::endl;
+    //std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+    wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+    //file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
+    //file.close();
 #else
-	envPath.append(path).append(L"/lib").append(L":").append(_wgetenv(L"PATH"));
+    std::wcout.imbue(std::locale(""));
+    std::wstring path = pythonPath.wstring();
+
+    // Get current PATH
+    std::wstring path_env = getEnvVarAsWstring(L"PATH");
+
+    // Print current PATH
+    std::wcout << L"Current PATH: " << path_env << std::endl;
+
+    // Add python path to PATH
+    std::wcout << L"Adding python path to PATH" << std::endl;
+    std::wstring envPath;
+
+    envPath = (pythonPath / "lib").wstring() + L":" + path_env;
+
+    // Set updated PATH
+    setEnvVarAsWstring(L"PATH", envPath);
+
+    // Print updated PATH
+    std::wcout << L"Updated PATH: " << getEnvVarAsWstring(L"PATH") << std::endl;
 #endif
-	std::wcout << L"path: " << path << std::endl;
-	//file << L"path: " << path << std::endl;
-	//std::wcout << L"envPath: " << envPath << std::endl;
-	_wputenv_s(L"PATH", envPath.c_str());
-	std::wcout << L"==================================" << std::endl;
-	//file << L"==================================" << std::endl;
-	//std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-	wprintf(L"PATH=%s", _wgetenv(L"PATH"));
-	//file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-	//file.close();
+
 }
 
 void initPython()
 {
-	wchar_t path[256];
-	getPythonPath(path, 256);
+    std::filesystem::path path;
+	getPythonPath(path);
 	addPythonPath(path);
 
 	PyStatus status;
@@ -80,13 +115,13 @@ void initPython()
 	PyConfig_InitPythonConfig(&config);
 
 	// Set PYTHONHOME
-	status = PyConfig_SetString(&config, &config.home, path);
+	status = PyConfig_SetString(&config, &config.home, path.wstring().c_str());
 	if (PyStatus_Exception(status)) {
 		goto exception;
 	}
 
 	// Set PYTHONPATH
-	status = PyConfig_SetString(&config, &config.pythonpath_env, path);
+	status = PyConfig_SetString(&config, &config.pythonpath_env, path.wstring().c_str());
 	if (PyStatus_Exception(status)) {
 		goto exception;
 	}
