@@ -9,7 +9,7 @@ class PyAPIPlugin : public Plugin
 public:
 	PyAPIPlugin(QApplication *app);
 
-	static void play_audio();
+	static void playAudio();
 
 	int run();
 

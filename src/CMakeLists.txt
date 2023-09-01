@@ -19,7 +19,12 @@ if(WIN32)
     # message(STATUS  "Python_INCLUDE_DIRS  ${Python_INCLUDE_DIRS}")
     # message(STATUS  "Python_NumPy_INCLUDE_DIRS  ${Python_NumPy_INCLUDE_DIRS}")
     # message(STATUS  "Python_LIBRARIES  ${Python_LIBRARIES}")
+    # message(STATUS  "Python_RUNTIME_LIBRARY_DIRS  ${Python_RUNTIME_LIBRARY_DIRS}")
     # message(STATUS  "Python_STDLIB  ${Python_STDLIB}")
+
+    # set(CMAKE_TOOLCHAIN_FILE ${VCPKG_INSTALLED_DIR}/../scripts/buildsystems/vcpkg.cmake)
+    set(cppzmq_DIR ${VCPKG_INSTALLED_DIR}/x64-windows/share/cppzmq)
+    set(ZeroMQ_DIR ${VCPKG_INSTALLED_DIR}/x64-windows/share/zeromq)
 
 elseif(APPLE)
 #    set(PYTHON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/py/.venv/include/python3.10)
@@ -30,6 +35,8 @@ elseif(APPLE)
     set(CMAKE_PREFIX_PATH "/Users/duolanda/Qt/6.3.1/macos/lib/cmake")
     find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED )
 endif()
+
+find_package(cppzmq)
 
 # 生成可执行文件
 add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp)
@@ -43,9 +50,9 @@ add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.c
     include_directories(${Python_NumPy_INCLUDE_DIRS})
     # target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui)
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui)
+    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui cppzmq)
 elseif(APPLE)
-    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt6::Core Qt6::Widgets Qt6::Gui)
+    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt6::Core Qt6::Widgets Qt6::Gui cppzmq)
 endif()
 
 
