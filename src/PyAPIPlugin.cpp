@@ -33,7 +33,11 @@ void setEnvVarAsWstring(const wchar_t* name, const std::wstring& value) {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::string name_str = converter.to_bytes(name);
     std::string value_str = converter.to_bytes(value);
-    setenv(name_str.c_str(), value_str.c_str(), 1);
+#ifdef _WIN32
+	_putenv_s(name_str.c_str(), value_str.c_str());
+#else
+	setenv(name_str.c_str(), value_str.c_str(), 1);
+#endif
 }
 
 // Get path of .venv
@@ -56,31 +60,38 @@ int getPythonPath(std::filesystem::path& pythonPath) {
 }
 // Add .venv to PATH
 void addPythonPath(const std::filesystem::path& pythonPath) {
+	std::wcout.imbue(std::locale(""));
 #ifdef _WIN32
-    std::wstring pythonPath = pythonPath.wstring()
     // because windows can run, we don't change
     // Add python path to PATH
-    //std::wfstream file("example.txt");
-    //std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-    wprintf(L"PATH=%s", _wgetenv(L"PATH"));
-    //file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-    std::wcout << L"Adding python path to PATH" << std::endl;
-    //file << L"Adding python path to PATH" << std::endl;
-    std::wstring envPath(L"");
-    envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
-    std::wcout << L"path: " << path << std::endl;
-    //file << L"path: " << path << std::endl;
+
+	// Get current PATH
+	std::wstring path_env = _wgetenv(L"PATH");
+
+	// Print current PATH
+	std::wcout << L"Current PATH: " << path_env << std::endl;
+    //wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+
+	// Add python path to PATH
+	std::wcout << L"Adding python path to PATH" << std::endl;
+	std::wstring envPath;
+
+	envPath = pythonPath.wstring().append(L";").append(path_env);
+    //envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
+
+	// Set updated PATH
+	_wputenv_s(L"PATH", envPath.c_str());
+
+	// Print updated PATH
+	std::wcout << L"Updated PATH: " << _wgetenv(L"PATH") << std::endl;
+
+    //std::wcout << L"path: " << path << std::endl;
     //std::wcout << L"envPath: " << envPath << std::endl;
-    _wputenv_s(L"PATH", envPath.c_str());
-    std::wcout << L"==================================" << std::endl;
-    //file << L"==================================" << std::endl;
-    //std::wcout << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-    wprintf(L"PATH=%s", _wgetenv(L"PATH"));
-    //file << L"PATH=" << _wgetenv(L"PATH") << std::flush;
-    //file.close();
+    //std::wcout << L"==================================" << std::endl;
+    //wprintf(L"PATH=%s", _wgetenv(L"PATH"));
 #else
-    std::wcout.imbue(std::locale(""));
-    std::wstring path = pythonPath.wstring();
+    //std::wcout.imbue(std::locale(""));
+    //std::wstring path = pythonPath.wstring();
 
     // Get current PATH
     std::wstring path_env = getEnvVarAsWstring(L"PATH");
