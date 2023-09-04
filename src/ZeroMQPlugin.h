@@ -2,7 +2,6 @@
 #define ZEROMQPLUGIN_H
 
 #include "Plugin.h"
-#include <zmq.hpp>
 
 class ZeroMQPlugin : public Plugin
 {

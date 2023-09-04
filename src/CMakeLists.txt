@@ -39,7 +39,7 @@ endif()
 find_package(cppzmq)
 
 # 生成可执行文件
-add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp)
+add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp "ZeroMQPlugin.cpp")
 
 # 链接头文件和库
     # include_directories(${PYTHON_INCLUDE_DIRS})
