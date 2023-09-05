@@ -11,6 +11,7 @@ class VideoWidget : public QWidget
 public:
 	explicit VideoWidget(QWidget *parent = nullptr);
 	void setImage(const QImage &image);
+	void copyImage();
 	void setSize(const int width, const int height);
 	void setSize(const QImage &image);
 

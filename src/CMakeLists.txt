@@ -1,9 +1,8 @@
 # 查找第三方依赖
 if(WIN32)
-    # set(Qt5_ROOT Z:/Software/Qt/Qt/5.14.2/msvc2017_64/)
     set(CMAKE_PREFIX_PATH Z:/Software/Qt/Qt/5.14.2/msvc2017_64/lib/cmake/Qt5)
     set(Qt5_DIR Z:/Software/Qt/Qt/5.14.2/msvc2017_64/)
-    find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
+    find_package(Qt5 COMPONENTS Core Widgets Gui Multimedia REQUIRED)
 
     # find_package(PythonLibs REQUIRED)
     # set(PYTHON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/py/.venv/include)
@@ -33,13 +32,13 @@ elseif(APPLE)
     set(Python_ROOT_DIR ${CMAKE_SOURCE_DIR}/py/.venv)
     find_package(Python COMPONENTS Interpreter Development NumPy)
     set(CMAKE_PREFIX_PATH "/Users/duolanda/Qt/6.3.1/macos/lib/cmake")
-    find_package(Qt6 COMPONENTS Core Widgets Gui REQUIRED )
+    find_package(Qt6 COMPONENTS Core Widgets Gui Multimedia REQUIRED )
 endif()
 
 find_package(cppzmq)
 
 # 生成可执行文件
-add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp "ZeroMQPlugin.cpp")
+add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp ZeroMQPlugin.cpp)
 
 # 链接头文件和库
     # include_directories(${PYTHON_INCLUDE_DIRS})
@@ -50,9 +49,9 @@ add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.c
     include_directories(${Python_NumPy_INCLUDE_DIRS})
     # target_link_libraries(${PROJECT_NAME} ${PYTHON_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui)
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui cppzmq)
+    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Multimedia cppzmq)
 elseif(APPLE)
-    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt6::Core Qt6::Widgets Qt6::Gui cppzmq)
+    target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES} Qt6::Core Qt6::Widgets Qt6::Gui Qt6::Multimedia cppzmq)
 endif()
 
 
