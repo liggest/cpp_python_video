@@ -9,6 +9,11 @@ void VideoWidget::setImage(const QImage &image)
 	update();
 }
 
+void VideoWidget::copyImage()
+{
+	m_image = m_image.copy();
+}
+
 void VideoWidget::setSize(const int width, const int height)
 {
 	resize(width, height);

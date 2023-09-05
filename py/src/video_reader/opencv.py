@@ -17,7 +17,7 @@ def init_capture(video_path):
     return cap
 
 def read_video():
-    return *cap.read(), time.time_ns()  # retval, image，time
+    return *cap.read(), cap.get(cv2.CAP_PROP_POS_MSEC), time.time_ns()  # retval, image，file_time_ms, time
 
 def video_size():
     return cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -34,11 +34,14 @@ if __name__ == "__main__":
 
     frames, fps = video_frames()
     interval = int(1000 / fps)
+    start_time_ns = time.time_ns()
+    ms2ns = 10**6
     # 循环读取并显示视频帧
     while True:
         # 读取一帧视频
-        ret, frame, time_ns = read_video()
-
+        ret, frame, file_time_ms ,time_ns = read_video()
+        interval = max(1, int(file_time_ms - (time_ns - start_time_ns) / ms2ns))
+        # print(interval)
         # 如果读取失败，说明视频结束
         if not ret:
             break
