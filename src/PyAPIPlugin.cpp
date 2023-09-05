@@ -9,6 +9,8 @@
 #include <numpy/arrayobject.h>
 #include <QApplication>
 #include <QTimer>
+#include <QtMultimedia>
+
 //#include <QThread>
 #include <locale>
 
@@ -22,6 +24,7 @@ PyAPIPlugin::PyAPIPlugin(QApplication *_app) : app(_app) {}
 void PyAPIPlugin::playAudio() {
 	std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
 	std::system(command.c_str());
+	
 }
 
 std::wstring getEnvVarAsWstring(const wchar_t* name) {
