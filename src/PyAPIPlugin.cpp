@@ -22,9 +22,25 @@
 PyAPIPlugin::PyAPIPlugin(QApplication *_app) : app(_app) {}
 
 void PyAPIPlugin::playAudio() {
-	std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
-	std::system(command.c_str());
+	//std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
+	//std::system(command.c_str());
+	//QAudioDeviceInfo device(QAudioDeviceInfo::defaultOutputDevice());
+	QAudioDevice device = QMediaDevices::defaultAudioOutput();
+	std::cout << "Device Name: " << device.deviceName().toStdString() << std::endl;
+	QAudioFormat format;
+	format.setSampleRate(44100);
+	format.setChannelCount(2);
+	format.setSampleType(QAudioFormat::SampleType::Float);
+	if (!device.isFormatSupported(format)) {
+		std::cout << "Unsupported Audio Format " << std::endl;
+	}
+	QAudioOutput audioOutput(device, format);
+	QIODevice* audioIO = audioOutput.start();
 	
+}
+
+long msToSamples(long ms, int sampleRate) {
+	return ms * sampleRate / 1000;
 }
 
 std::wstring getEnvVarAsWstring(const wchar_t* name) {
@@ -177,7 +193,6 @@ int PyAPIPlugin::run() {
 	// 导入 Python 模块
 	//PyObject *pModule = PyImport_ImportModule("read_video");
 	PyObject* pModule = PyImport_ImportModule("video_reader.opencv");
-
 	if (pModule == nullptr) {
 		//std::cerr << "Cannot import read_video.py" << std::endl;
 		std::cerr << "Cannot import video_reader.opencv" << std::endl;
@@ -254,7 +269,7 @@ int PyAPIPlugin::run() {
 	std::cout << "Video Info:" << std::endl;
 	std::cout << "width: " << width << " height: " << height << std::endl;
 	if (width > 0 && height > 0) {
-		videoWidget.setSize(width, height);
+		videoWidget.resize(width, height);
 	}
 
 	PyObject* pFrameInfo = PyObject_CallObject(pVideoFrames, nullptr);
@@ -282,31 +297,157 @@ int PyAPIPlugin::run() {
 	//timer.setInterval(1000 / fps);  // 按 fps 的间隔更新视频帧
 	//timer.setInterval(30);  // 按30ms的间隔更新视频帧
 
+	// 导入 Python 模块
+	PyObject* pAudioModule = PyImport_ImportModule("video_reader.audio");
+	if (pAudioModule == nullptr) {
+		//std::cerr << "Cannot import read_video.py" << std::endl;
+		std::cerr << "Cannot import video_reader.audio" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+
+	// 获取模块中的 init_audio 函数
+	PyObject* pInitAudio = PyObject_GetAttrString(pAudioModule, "init_audio");
+	if (pInitAudio == nullptr) {
+		std::cerr << "Cannot find 'init_audio' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+	// 获取模块中的 read_audio 函数
+	//PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_bytes");
+	PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_int16");
+	if (pReadAudio == nullptr) {
+		std::cerr << "Cannot find 'read_audio_bytes' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+	// 获取模块中的 audio_samples 函数
+	PyObject* pAudioSamples = PyObject_GetAttrString(pAudioModule, "audio_samples");
+	if (pAudioSamples == nullptr) {
+		std::cerr << "Cannot find 'audio_samples' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+	// 获取模块中的 audio_finished 函数
+	PyObject* pAudioFinished = PyObject_GetAttrString(pAudioModule, "audio_finished");
+	if (pAudioFinished == nullptr) {
+		std::cerr << "Cannot find 'audio_finished' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+	// 获取模块中的 release_audio 函数
+	PyObject* pReleaseAudio = PyObject_GetAttrString(pAudioModule, "release_audio");
+	if (pReleaseAudio == nullptr) {
+		std::cerr << "Cannot find 'release_audio' function" << std::endl;
+		if (PyErr_Occurred()) PyErr_Print();
+		return 1;
+	}
+
+	// 调用 init_audio 函数
+	PyObject* pAudioPath = PyUnicode_FromString("../resource/audio.mp3");
+	PyObject* pAudioFile = PyObject_CallObject(pInitAudio, PyTuple_Pack(1, pAudioPath));
+	// 检查是否成功打开音频文件
+	if (PyErr_Occurred()) {
+		std::cerr << "Cannot open the audio file" << std::endl;
+		PyErr_Print();
+		return 1;
+	}
+
+	// 调用 audio_samples 函数
+	PyObject* pAudioInfo = PyObject_CallObject(pAudioSamples, nullptr);
+	PyObject* pSampleRate = PyTuple_GetItem(pAudioInfo, 0);
+	PyObject* pSamples = PyTuple_GetItem(pAudioInfo, 1);
+	PyObject* pChannels = PyTuple_GetItem(pAudioInfo, 2);
+	int sampleRate = PyLong_AsLong(pSampleRate);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		return 1;
+	}
+	int totalSamples = PyLong_AsLong(pSamples);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		return 1;
+	}
+	int channels = PyLong_AsLong(pChannels);
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		return 1;
+	}
+	std::cout << "Audio Info:" << std::endl;
+	std::cout << "Sample Rate: " << sampleRate << " Channels: " << channels << " Total Samples: " << totalSamples << std::endl;
+
+	QList devices = QAudioDeviceInfo::availableDevices(QAudio::Mode::AudioOutput);
+	//for each (QAudioDeviceInfo device in devices)
+	//{
+	//	std::cout << "Device Name: " << device.deviceName().toStdString() << std::endl;
+	//}
+
+	//QAudioDeviceInfo device(QAudioDeviceInfo::defaultOutputDevice());
+	QAudioDeviceInfo device = devices.first();
+	std::cout << "Default Device Name: " << device.deviceName().toStdString() << std::endl;
+	QAudioFormat format;
+	format.setSampleRate(sampleRate);
+	format.setSampleSize(16);
+	format.setSampleType(QAudioFormat::SampleType::SignedInt);
+	format.setChannelCount(channels);
+	format.setByteOrder(QAudioFormat::LittleEndian);
+	format = device.nearestFormat(format);
+	if (!device.isFormatSupported(format)) {
+		std::cout << "Unsupported Audio Format!" << std::endl;
+		return 1;
+	}
+	std::cout << "Format Channels: " << format.channelCount() << std::endl;
+	std::cout << "Format Sample Rate: " << format.sampleRate() << std::endl;
+	std::cout << "Format Sample Size: " << format.sampleSize() << std::endl;
+	std::cout << "Format Byte Order: " << format.byteOrder() << std::endl;
+	std::cout << "Format Codec: " << format.codec().toStdString() << std::endl;
+
 	auto now = std::chrono::system_clock::now();
 	auto nowNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
 	auto epochNs = nowNs.time_since_epoch();
 	long long timeNs = epochNs.count();
 	auto startTime = now;
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
+	auto duration = now - startTime;
 
-	long long fileTimeMS = 0;
+	long oneFrameMs = 1000 / fps;
+	long long fileTimeMs = 0;
 
 	long long totalLatency = 0;
 	long framePassed = 0;
 
 	PyObject* pRetVal = nullptr;
+	PyObject* pAudioRetVal = nullptr;
 
-	std::thread audio_thread(playAudio);
+	//std::thread audio_thread(playAudio);
 
 	//QThread* video_thread = QThread::create([&]() {
 	//QTimer::singleShot(0, [&]() {
 	std::thread video_thread([&]() {
-		std::cout << "QThread Starting" << std::endl;
+		std::cout << "Thread Starting" << std::endl;
+		QAudioOutput audioOutput(device, format);
+		QIODevice* audioIO = audioOutput.start();
 		Py_BEGIN_ALLOW_THREADS
 		PyGILState_STATE gstate = PyGILState_Ensure();  // 获取 GIL
+		pAudioRetVal = PyObject_CallObject(pReadAudio, PyTuple_Pack(1, PyLong_FromLong(msToSamples(oneFrameMs, sampleRate))));
+		PyObject* pAudioData = PyTuple_GetItem(pAudioRetVal, 0);
+		PyObject* pAudioByte = PyArray_ToString((PyArrayObject*)pAudioData, NPY_ORDER::NPY_CORDER);
+		//PyObject* pAudioByte = pAudioData;
+		//long length = PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(pAudioData))[0];
+		//int audioChannels = PyArray_SHAPE(reinterpret_cast<PyArrayObject*>(pAudioData))[1];
+		//std::cout  << "Length: " << length << " Channels: " << audioChannels << std::endl;
+		//long size = length * audioChannels;
+
+		//const QByteArray audioData = QByteArray::fromRawData((char*)PyArray_BYTES(pAudioArray), size);
+		QByteArray audioData(PyBytes_AsString(pAudioByte), PyBytes_Size(pAudioByte));
+		audioIO->write(audioData);
+		long timeReadMs = oneFrameMs;
 		while(true) {
 			if (pRetVal != nullptr) {
 				Py_DECREF(pRetVal);
+			}
+			if (pAudioRetVal != nullptr) {
+				Py_DECREF(pAudioRetVal);
+				Py_XDECREF(pAudioByte);
 			}
 			//std::cout << "! 1" << std::endl;
 
@@ -316,12 +457,14 @@ int PyAPIPlugin::run() {
 
 			if (pIsRead == Py_False) {
 				Py_DECREF(pRetVal);
+				Py_DECREF(pAudioRetVal);
+				Py_XDECREF(pAudioByte);
 				PyGILState_Release(gstate);  // 释放 GIL
 				now = std::chrono::system_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - startTime);
-				long long seconds = duration.count();
+				duration = now - startTime;
+				long long seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 				std::cout << "Video Playback Time: " << seconds / 60 << "m" << seconds % 60 << "s (" << seconds << "s)" << std::endl;
-				long long fileSeconds = fileTimeMS / 1000;
+				long long fileSeconds = fileTimeMs / 1000;
 				std::cout << "Video File Duration: " << fileSeconds / 60 << "m" << fileSeconds % 60 << "s (" << fileSeconds << "s)" << std::endl;
 				return; // 视频播放结束
 			}
@@ -331,6 +474,25 @@ int PyAPIPlugin::run() {
 			PyObject* pFrame = PyTuple_GetItem(pRetVal, 1);
 			PyObject* pAimedTimeMs = PyTuple_GetItem(pRetVal, 2);
 			PyObject* pTimeNs = PyTuple_GetItem(pRetVal, 3);
+
+			long long newFileTimeMs = static_cast<int>(PyFloat_AsDouble(pAimedTimeMs));
+			if (newFileTimeMs < 0 && PyErr_Occurred()) {
+				PyErr_Print();
+				// TODO 还不知道怎么处理
+			}
+			
+			oneFrameMs = newFileTimeMs - fileTimeMs;
+			pAudioRetVal = PyObject_CallObject(pReadAudio, PyTuple_Pack(1, PyLong_FromLong(msToSamples(oneFrameMs, sampleRate))));
+			pAudioData = PyTuple_GetItem(pAudioRetVal, 0);
+			pAudioByte = PyArray_ToString((PyArrayObject*)pAudioData, NPY_ORDER::NPY_CORDER);
+			//pAudioByte = pAudioData;
+			//length = PyArray_SHAPE(pAudioArray)[0];
+			//audioChannels = PyArray_SHAPE(pAudioArray)[1];
+			//size = length * audioChannels;
+			QByteArray audioData(PyBytes_AsString(pAudioByte), PyBytes_Size(pAudioByte));
+			audioIO->write(audioData);
+			timeReadMs += oneFrameMs;
+			fileTimeMs = newFileTimeMs;
 
 			// 将 Python 的 numpy.array 转换为 QImage
 			PyArrayObject* pFrameArray = reinterpret_cast<PyArrayObject*>(pFrame);
@@ -362,14 +524,9 @@ int PyAPIPlugin::run() {
 				std::cout << "[Latency (ns)] Total: " << totalLatency << " \tAverage: " << totalLatency / framePassed << " \tframePassed: " << framePassed << std::endl;
 			}
 
-			duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime);
-			fileTimeMS = static_cast<int>(PyFloat_AsDouble(pAimedTimeMs));
-			if (fileTimeMS < 0 && PyErr_Occurred()) {
-				PyErr_Print();
-				// TODO 还不知道怎么处理
-			}
-			long long playedTimeMS = duration.count();
-			std::this_thread::sleep_for(std::chrono::milliseconds(playedTimeMS < fileTimeMS ? fileTimeMS - playedTimeMS : 1));
+			duration = now - startTime;
+			long long playedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+			std::this_thread::sleep_for(std::chrono::milliseconds(playedTimeMs < fileTimeMs ? fileTimeMs - playedTimeMs : 1));
 
 			//std::cout << "! 5" << std::endl;
 
@@ -437,9 +594,11 @@ int PyAPIPlugin::run() {
 	
 	//video_thread->wait();
 	video_thread.join();
-	audio_thread.join();
+	//audio_thread.join();
 
+	std::cout << "Releasing" << std::endl;
 	PyObject_CallObject(pReleaseCapture, nullptr);
+	PyObject_CallObject(pReleaseAudio, nullptr);
 
 	// 释放 Python 对象
 	Py_DECREF(pModule);
@@ -447,13 +606,23 @@ int PyAPIPlugin::run() {
 	Py_DECREF(pInitCapture);
 	Py_DECREF(pReadVideo);
 	Py_DECREF(pVideoSize);
+	Py_DECREF(pReleaseCapture);
 	Py_DECREF(pFrameInfo);
 	Py_DECREF(pVideoPath);
-	Py_DECREF(pReleaseCapture);
 	Py_DECREF(pCap);
 	Py_DECREF(pSize);
 	Py_DECREF(pFPS);
 	//Py_DECREF(pIsOpened);
+
+	Py_DECREF(pAudioModule);
+	Py_DECREF(pInitAudio);
+	Py_DECREF(pAudioSamples);
+	Py_DECREF(pReadAudio);
+	Py_DECREF(pAudioFinished);
+	Py_DECREF(pReleaseAudio);
+	Py_DECREF(pAudioPath);
+	Py_DECREF(pAudioFile);
+	Py_DECREF(pAudioInfo);
 
 	Py_Finalize();
 
