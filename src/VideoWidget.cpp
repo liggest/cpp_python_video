@@ -1,7 +1,9 @@
 #include "VideoWidget.h"
 
 
-VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent) {}
+VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent) {
+	setImage(QImage(256, 256, QImage::Format::Format_ARGB32));
+}
 
 void VideoWidget::setImage(const QImage &image)
 {
@@ -12,17 +14,6 @@ void VideoWidget::setImage(const QImage &image)
 void VideoWidget::copyImage()
 {
 	m_image = m_image.copy();
-}
-
-void VideoWidget::setSize(const int width, const int height)
-{
-	resize(width, height);
-}
-
-void VideoWidget::setSize(const QImage& image)
-{
-	setImage(image);
-	resize(m_image.width(), m_image.height());
 }
 
 void VideoWidget::paintEvent(QPaintEvent *event)

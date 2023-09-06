@@ -17,10 +17,20 @@ def init_audio(audio_path):
     return audio_file
 
 def audio_finished():
-    audio_file.tell() >= audio_file.frames
+    return audio_file.tell() >= audio_file.frames
 
 def read_audio(samples:int):
     return audio_file.read(samples), time.time_ns()
+
+def read_audio_int16(samples:int):
+    return audio_file.read(samples, dtype='int16'), time.time_ns()
+
+def read_audio_float32(samples:int):
+    return audio_file.read(samples, dtype='float32'), time.time_ns()
+
+def read_audio_bytes(samples:int):
+    # print("samples", samples)
+    return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns()
 
 def audio_samples():
     return audio_file.samplerate, audio_file.frames, audio_file.channels
@@ -30,8 +40,19 @@ def release_audio():
 
 if __name__ == "__main__":
     path = "../resource/audio.mp3"
-    init_audio(path)
+    audio_file = init_audio(path)
     sr, samples, channels = audio_samples()
+    # print(audio_file.samplerate)    # 48000
+    # print(audio_file.frames)        # 10190848
+    # print(audio_file.channels)      # 2
+    # print(audio_file.format)        # MP3
+    # print(audio_file.format_info)   # MPEG-1/2 Audio
+    # print(audio_file.endian)        # FILE
+    # print(audio_file.mode)          # r
+    # print(audio_file.sections)      # 1
+    # print(audio_file.subtype)       # MPEG_LAYER_III
+    # print(audio_file.subtype_info)  # MPEG Layer III
+    # print(audio_file.extra_info)
 
     def callback(outdata:np.ndarray, frames:int, time_, status):
         samples, time_ns = read_audio( frames )
