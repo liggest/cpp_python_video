@@ -1,7 +1,9 @@
 #include "VideoWidget.h"
 
 
-VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent) {}
+VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent) {
+	setImage(QImage(256, 256, QImage::Format::Format_ARGB32));
+}
 
 void VideoWidget::setImage(const QImage &image)
 {

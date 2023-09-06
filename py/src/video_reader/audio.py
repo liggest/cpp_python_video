@@ -25,6 +25,9 @@ def read_audio(samples:int):
 def read_audio_int16(samples:int):
     return audio_file.read(samples, dtype='int16'), time.time_ns()
 
+def read_audio_float32(samples:int):
+    return audio_file.read(samples, dtype='float32'), time.time_ns()
+
 def read_audio_bytes(samples:int):
     # print("samples", samples)
     return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns()

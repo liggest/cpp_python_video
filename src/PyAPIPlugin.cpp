@@ -25,17 +25,19 @@ void PyAPIPlugin::playAudio() {
 	//std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
 	//std::system(command.c_str());
 	//QAudioDeviceInfo device(QAudioDeviceInfo::defaultOutputDevice());
-	QAudioDevice device = QMediaDevices::defaultAudioOutput();
-	std::cout << "Device Name: " << device.deviceName().toStdString() << std::endl;
-	QAudioFormat format;
-	format.setSampleRate(44100);
-	format.setChannelCount(2);
-	format.setSampleType(QAudioFormat::SampleType::Float);
-	if (!device.isFormatSupported(format)) {
-		std::cout << "Unsupported Audio Format " << std::endl;
-	}
-	QAudioOutput audioOutput(device, format);
-	QIODevice* audioIO = audioOutput.start();
+	//QAudioDevice device = QMediaDevices::defaultAudioOutput();
+	//std::cout << "Device Name: " << device.description().toStdString() << std::endl;
+	//QAudioFormat format;
+	//format.setSampleRate(44100);
+	//format.setChannelCount(2);
+	//format.setSampleFormat(QAudioFormat::SampleFormat::Int16);
+	//if (!device.isFormatSupported(format)) {
+	//	std::cout << "Unsupported Audio Format " << std::endl;
+	//}
+	////QAudioOutput audioOutput(device, format);
+	//QAudioSink audioSink(device, format);
+	//QIODevice* audioIO = audioSink.start();
+	//QIODevice* audioIO = audioOutput.start();
 	
 }
 
@@ -315,7 +317,8 @@ int PyAPIPlugin::run() {
 	}
 	// 获取模块中的 read_audio 函数
 	//PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_bytes");
-	PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_int16");
+	//PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_int16");
+	PyObject* pReadAudio = PyObject_GetAttrString(pAudioModule, "read_audio_float32");
 	if (pReadAudio == nullptr) {
 		std::cerr << "Cannot find 'read_audio_bytes' function" << std::endl;
 		if (PyErr_Occurred()) PyErr_Print();
@@ -376,31 +379,36 @@ int PyAPIPlugin::run() {
 	std::cout << "Audio Info:" << std::endl;
 	std::cout << "Sample Rate: " << sampleRate << " Channels: " << channels << " Total Samples: " << totalSamples << std::endl;
 
-	QList devices = QAudioDeviceInfo::availableDevices(QAudio::Mode::AudioOutput);
+	//QList devices = QAudioDeviceInfo::availableDevices(QAudio::Mode::AudioOutput);
+	QList devices = QMediaDevices::audioOutputs();
 	//for each (QAudioDeviceInfo device in devices)
 	//{
 	//	std::cout << "Device Name: " << device.deviceName().toStdString() << std::endl;
 	//}
 
 	//QAudioDeviceInfo device(QAudioDeviceInfo::defaultOutputDevice());
-	QAudioDeviceInfo device = devices.first();
-	std::cout << "Default Device Name: " << device.deviceName().toStdString() << std::endl;
+	//QAudioDeviceInfo device = devices.first();
+	QAudioDevice device = devices.first();
+	//std::cout << "Default Device Name: " << device.deviceName().toStdString() << std::endl;
+	std::cout << "Default Device Name: " << device.description().toStdString() << std::endl;
 	QAudioFormat format;
 	format.setSampleRate(sampleRate);
-	format.setSampleSize(16);
-	format.setSampleType(QAudioFormat::SampleType::SignedInt);
+	//format.setSampleSize(16);
+	//format.setSampleType(QAudioFormat::SampleType::SignedInt);
+	//format.setSampleFormat(QAudioFormat::SampleFormat::Int16);
+	format.setSampleFormat(QAudioFormat::SampleFormat::Float);
 	format.setChannelCount(channels);
-	format.setByteOrder(QAudioFormat::LittleEndian);
-	format = device.nearestFormat(format);
+	//format.setByteOrder(QAudioFormat::LittleEndian);
+	//format = device.nearestFormat(format);
 	if (!device.isFormatSupported(format)) {
 		std::cout << "Unsupported Audio Format!" << std::endl;
 		return 1;
 	}
 	std::cout << "Format Channels: " << format.channelCount() << std::endl;
 	std::cout << "Format Sample Rate: " << format.sampleRate() << std::endl;
-	std::cout << "Format Sample Size: " << format.sampleSize() << std::endl;
-	std::cout << "Format Byte Order: " << format.byteOrder() << std::endl;
-	std::cout << "Format Codec: " << format.codec().toStdString() << std::endl;
+	//std::cout << "Format Sample Size: " << format.sampleSize() << std::endl;
+	//std::cout << "Format Byte Order: " << format.byteOrder() << std::endl;
+	//std::cout << "Format Codec: " << format.codec().toStdString() << std::endl;
 
 	auto now = std::chrono::system_clock::now();
 	auto nowNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
@@ -424,8 +432,10 @@ int PyAPIPlugin::run() {
 	//QTimer::singleShot(0, [&]() {
 	std::thread video_thread([&]() {
 		std::cout << "Thread Starting" << std::endl;
-		QAudioOutput audioOutput(device, format);
-		QIODevice* audioIO = audioOutput.start();
+		//QAudioOutput audioOutput(device, format);
+		QAudioSink audioSink(device, format);
+		//QIODevice* audioIO = audioOutput.start();
+		QIODevice* audioIO = audioSink.start();
 		Py_BEGIN_ALLOW_THREADS
 		PyGILState_STATE gstate = PyGILState_Ensure();  // 获取 GIL
 		pAudioRetVal = PyObject_CallObject(pReadAudio, PyTuple_Pack(1, PyLong_FromLong(msToSamples(oneFrameMs, sampleRate))));
