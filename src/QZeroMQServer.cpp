@@ -77,8 +77,9 @@ void QZeroMQServer::serve() {
     
     long long readSamples = 0;
     long long currentTimeSec = 0;
-    long samplesPreRead = sampleRate / 2;
-    const long readThreshold = sampleRate;
+    long samplesPreRead = sampleRate / 8;
+    const long readThreshold = samplesPreRead / 2;
+    const long sleepMs = 1000 / 30;
 
     AudioPlayer audioPlayer;
     QThread audioThread;
@@ -116,10 +117,10 @@ void QZeroMQServer::serve() {
     {
         auto now = std::chrono::system_clock::now();
         auto duration = now - startTime;
-        long long secondsPassed = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        if (secondsPassed * sampleRate / 1000 < readSamples - readThreshold)  // 还有的播，就先不读
+        long long msPassed = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        if (msPassed * sampleRate / 1000 < readSamples - readThreshold)  // 还有的播，就先不读
         {
-            QThread::msleep(100);
+            QThread::msleep(sleepMs);
             continue;
         }
 
