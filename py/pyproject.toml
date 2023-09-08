@@ -9,9 +9,9 @@ authors = [
 dependencies = [
     "numpy>=1.25.2",
     "opencv-python>=4.8.0.76",
-    "pyzmq>=25.1.1",
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
+    "pyzmq>=25.1.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

@@ -17,6 +17,7 @@ def init_audio(audio_path):
     return audio_file
 
 def audio_finished():
+    print(audio_file.tell(), audio_file.frames)
     return audio_file.tell() >= audio_file.frames
 
 def read_audio(samples:int):
@@ -30,9 +31,9 @@ def read_audio_float32(samples:int):
 
 def read_audio_bytes(samples:int):
     # print("samples", samples)
-    return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns()
+    return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns().to_bytes(8, "big") # long long 8 bytes
 
-def audio_samples():
+def audio_samples() -> tuple[int, int, int]:
     return audio_file.samplerate, audio_file.frames, audio_file.channels
 
 def release_audio():

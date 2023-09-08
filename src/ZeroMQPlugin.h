@@ -1,6 +1,8 @@
 #ifndef ZEROMQPLUGIN_H
 #define ZEROMQPLUGIN_H
 
+#include <QApplication>
+
 #include "Plugin.h"
 
 class ZeroMQPlugin : public Plugin
