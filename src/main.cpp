@@ -8,7 +8,7 @@
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
-    //PyAPIPlugin plugin = PyAPIPlugin(&app);
+//    PyAPIPlugin plugin = PyAPIPlugin(&app);
 	ZeroMQPlugin plugin = ZeroMQPlugin(&app);
 	PluginManager pm(&plugin);
 	

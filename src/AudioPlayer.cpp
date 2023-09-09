@@ -31,6 +31,7 @@ int AudioPlayer::init(int sampleRate, int channels) {
 	std::cout << "Format Sampling Rate: " << format.sampleRate() << std::endl;
 	
 	sink = new QAudioSink(device, format, this);
+    sink->setBufferSize(96000);
 	audioIO = sink->start();
 
 	std::cout << "Buffer Size: " << sink->bufferSize() << std::endl;
