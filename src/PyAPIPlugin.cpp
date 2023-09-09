@@ -434,7 +434,7 @@ int PyAPIPlugin::run() {
 		std::cout << "Thread Starting" << std::endl;
 		//QAudioOutput audioOutput(device, format);
 		QAudioSink audioSink(device, format);
-        audioSink.setBufferSize(96000);
+        audioSink.setBufferSize(sampleRate * 2);  // 暂时设成采样率的 2 倍 sr 48000 buffer 96000
 		//QIODevice* audioIO = audioOutput.start();
 		QIODevice* audioIO = audioSink.start();
 		Py_BEGIN_ALLOW_THREADS
