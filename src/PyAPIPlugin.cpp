@@ -366,7 +366,7 @@ int PyAPIPlugin::run() {
 		PyErr_Print();
 		return 1;
 	}
-	int totalSamples = PyLong_AsLong(pSamples);
+	long long totalSamples = PyLong_AsLong(pSamples);
 	if (PyErr_Occurred()) {
 		PyErr_Print();
 		return 1;

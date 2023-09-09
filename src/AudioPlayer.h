@@ -1,0 +1,26 @@
+#ifndef AUDIOPLAYER_H
+#define AUDIOPLAYER_H
+
+#include <qobject.h>
+#include <QtMultimedia>
+
+class AudioPlayer : public QObject
+{
+	Q_OBJECT
+public:
+	explicit AudioPlayer(QObject* parent = nullptr);
+	~AudioPlayer();
+
+	QAudioSink* sink = nullptr;
+	QIODevice* audioIO = nullptr;
+
+public slots:
+	int init(int sampleRate, int channels);
+	void readData(const char* data, size_t size, long long timeNs);
+
+signals:
+	void startRead();
+};
+
+
+#endif

@@ -32,6 +32,7 @@ elseif(APPLE)
     set(CMAKE_PREFIX_PATH "/Users/duolanda/Qt/6.3.1/macos/lib/cmake")
 endif()
 
+set(CMAKE_AUTOMOC ON) 
 find_package(Qt6 COMPONENTS Core Widgets Gui Multimedia REQUIRED )
 
 # message(STATUS  "QT_DEPLOY_BIN_DIR  ${QT_DEPLOY_BIN_DIR}")
@@ -44,7 +45,7 @@ find_package(Qt6 COMPONENTS Core Widgets Gui Multimedia REQUIRED )
 find_package(cppzmq)
 
 # 生成可执行文件
-add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp ZeroMQPlugin.cpp)
+add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp ZeroMQPlugin.cpp AudioPlayer.cpp QZeroMQServer.cpp)
 
 # 链接头文件和库
 # include_directories(${PYTHON_INCLUDE_DIRS})
