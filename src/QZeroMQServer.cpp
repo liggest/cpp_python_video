@@ -28,7 +28,7 @@ void QZeroMQServer::serve() {
     zmq::context_t context(2);
     zmq::socket_t socket(context, zmq::socket_type::pair);
     std::cout << "Setting up audio server..." << std::endl;
-    socket.bind("ipc://../py/audio_player.ipc");
+    socket.bind("ipc://../py/temp/audio_player.ipc");
     //socket.bind("tcp://localhost:5555");
 
     const char* audio_path = "../resource/audio.mp3";
@@ -77,9 +77,9 @@ void QZeroMQServer::serve() {
     
     long long readSamples = 0;
     long long currentTimeSec = 0;
-    long samplesPreRead = sampleRate / 8;
-    const long readThreshold = samplesPreRead / 2;
-    const long sleepMs = 1000 / 30;
+    long samplesPreRead = sampleRate / 16;
+    const long readThreshold = sampleRate / 2;
+    const long sleepMs = 1000 / 16;
 
     AudioPlayer audioPlayer;
     QThread audioThread;
@@ -108,7 +108,7 @@ void QZeroMQServer::serve() {
     std::cout << "Start Reading..." << std::endl;
 
     std::string readString = "READ ";
-    readString.append(std::to_string(samplesPreRead)); // "OK {audio_path}"
+    readString.append(std::to_string(samplesPreRead)); // "READ {audio_path}"
     zmq::recv_result_t readResult;
 
     auto startTime = std::chrono::system_clock::now();

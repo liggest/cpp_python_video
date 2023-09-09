@@ -40,4 +40,3 @@ cmake-build-relwithdebinfo/
 *.exe
 *.out
 *.app
-py/audio_player.ipc

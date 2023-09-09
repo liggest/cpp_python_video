@@ -17,7 +17,7 @@ def init_audio(audio_path):
     return audio_file
 
 def audio_finished():
-    print(audio_file.tell(), audio_file.frames)
+    # print(audio_file.tell(), "/", audio_file.frames)
     return audio_file.tell() >= audio_file.frames
 
 def read_audio(samples:int):

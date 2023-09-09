@@ -40,17 +40,20 @@ async def on_init():
     await send_audio_info(path)
 
 async def send_audio():
-    while (message := await socket.recv_string()) is not None:
-        if message.startswith(Messages.read):
-            samples = int(message.split(maxsplit=1)[1])  # "READ {samples}"
-            print("Asked to Read", samples, "samples")
-            data_tuple = read_audio_bytes(samples)  # data, time_ns (bytes)
-            await socket.send_multipart(data_tuple, copy=False)
-            if audio_finished():
-                release_audio()
-                print("Audio Finished")
-                break
-    # print(repr(message))
+    try:
+        while (message := await asyncio.wait_for(socket.recv_string(), timeout=5)):  # 5 秒超时
+            if message.startswith(Messages.read):
+                samples = int(message.split(maxsplit=1)[1])  # "READ {samples}"
+                print("Asked to Read", samples, "samples")
+                data_tuple = read_audio_bytes(samples)  # data, time_ns (bytes)
+                await socket.send_multipart(data_tuple, copy=False)
+                if audio_finished():
+                    release_audio()
+                    print("Audio Finished")
+                    break
+        # print(repr(message))
+    except asyncio.TimeoutError:
+        print("Ask for Reading Timeout")
 
 # def registerSignal():
 #     sigMap = {signal.SIGTERM:"SIGTERM", signal.SIGINT:"SIGINT"}
@@ -74,7 +77,7 @@ async def main():
     print("ZeroMQ version", zmq.zmq_version())
     print("Connecting to the audio server...")
     # socket.connect("ipc://audio_player.ipc")
-    socket.connect("ipc://audio_player.ipc")
+    socket.connect("ipc://temp/audio_player.ipc")
     # socket.connect("tcp://localhost:5555")
 
     await on_init()
