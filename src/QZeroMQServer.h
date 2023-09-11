@@ -19,7 +19,7 @@ public slots:
 
 signals:
 	int init(int sampleRate, int channels);
-	void readData(const char* data, size_t size, long long timeNs);
+	void readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes);
 
 private:
 	bool readyToRead = false;

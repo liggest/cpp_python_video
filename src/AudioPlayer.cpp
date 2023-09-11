@@ -37,15 +37,22 @@ int AudioPlayer::init(int sampleRate, int channels) {
 	std::cout << "Buffer Size: " << sink->bufferSize() << std::endl;
 	std::cout << "AudioSink is Ready" << std::endl;
 
+	totalLatency = 0;
 	//emit AudioPlayer::startRead();
 	return 0;
 }
 
-void AudioPlayer::readData(const char* data, size_t size, long long timeNs) {
+void AudioPlayer::readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes) {
 	std::cout << "Reading " << size << " Bytes" << std::endl;
 	QByteArray audioData(data, size);
 	audioIO->write(audioData);
 	//audioIO->write(data, size);
+	auto now = std::chrono::system_clock::now();
+	auto timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch();
+	totalLatency += (timeNs - timeNsPY).count();
+	if (readTimes) {
+		std::cout << "[Latency (ns)] Total: " << totalLatency << " \tAverage: " << totalLatency / readTimes << " \treadTimes: " << readTimes << std::endl;
+	}
 }
 
 

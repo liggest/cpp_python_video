@@ -3,6 +3,7 @@ from __future__ import annotations
 import sounddevice as sd
 import soundfile as sf
 import time
+import sys
 
 from typing import TYPE_CHECKING
 
@@ -31,7 +32,7 @@ def read_audio_float32(samples:int):
 
 def read_audio_bytes(samples:int):
     # print("samples", samples)
-    return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns().to_bytes(8, "big") # long long 8 bytes
+    return audio_file.read(samples, dtype='int16').tobytes(), time.time_ns().to_bytes(16, sys.byteorder) # long long 16 bytes
 
 def audio_samples() -> tuple[int, int, int]:
     return audio_file.samplerate, audio_file.frames, audio_file.channels
