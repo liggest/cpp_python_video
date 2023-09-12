@@ -5,6 +5,7 @@ from zmq.asyncio import Context, Socket
 import sounddevice as sd
 
 import asyncio
+import time
 
 values = {
     "AUDIO_PATH": "../resource/audio.mp3",
@@ -64,11 +65,10 @@ def read_audio():
     if buffer:
         return buffer.popleft()
     
-
 def callback(outdata:np.ndarray, frames:int, time_, status):
-    samples = read_audio()
-    if samples is not None:
-        outdata[:] = samples
+    data = read_audio()
+    if data is not None:
+        outdata[:] = data
     else:
         outdata.fill(0)
 
@@ -78,14 +78,23 @@ async def audio_client(sr:int, total_samples:int, channels:int, ready:asyncio.Ev
     a_socket = a_context.socket(zmq.SUB)
     a_socket.connect("ipc://temp/audio_publish.ipc")
     a_socket.setsockopt(zmq.SUBSCRIBE, b'')
+    current_seconds = 0
+    latency = 0
+    read_times = 0
     with sd.OutputStream(sr, channels=channels, blocksize=1024, callback=callback, dtype="int16") as stream:
         values["AUDIO_READY"] = "TRUE"
         ready.set()
         print("wait for recv_multipart")
         try:
             while datas := await asyncio.wait_for(a_socket.recv_multipart(), timeout=5):
-                buffer.append(np.frombuffer(datas[0], dtype="int16").reshape((-1,2)))
-                print(int.from_bytes(datas[1], "little"))
+                buffer.append(np.frombuffer(datas[0], dtype="int16").reshape((-1, 2)))
+                # print(int.from_bytes(datas[1], "little"))
+                send_ns = int.from_bytes(datas[1], "little")
+                latency += time.time_ns() - send_ns
+                read_times += 1
+                if read_times * 1024 // sr > current_seconds:
+                    print(f"[Latency (ns)] Communication: {latency} \tAverage: {latency // read_times} \tread_times: {read_times}")
+                    current_seconds += 1
         except asyncio.TimeoutError:
             print("Read Timeout")
         while buffer:

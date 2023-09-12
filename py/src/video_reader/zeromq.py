@@ -255,7 +255,8 @@ class AudioServer(DataServer):
                 data_tuple = read_audio_bytes(self.samplesPreFrame)
                 current_samples += self.samplesPreFrame
                 await self.socket.send_multipart(data_tuple, copy=False)
-                print(int.from_bytes(data_tuple[1], "little"))
+                # print(int.from_bytes(data_tuple[1], "little"))
+                print(f"{current_samples} / {self.totalSamples}")
         except asyncio.TimeoutError:
             print(f"[{self.name}] Timeout")
         finally:
