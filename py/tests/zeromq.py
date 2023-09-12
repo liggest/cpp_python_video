@@ -7,6 +7,9 @@ import sounddevice as sd
 import asyncio
 import time
 
+from pathlib import Path
+Path("temp").mkdir(555,exist_ok=True)
+
 values = {
     "AUDIO_PATH": "../resource/audio.mp3",
 }

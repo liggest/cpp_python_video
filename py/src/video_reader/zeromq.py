@@ -13,6 +13,9 @@ from zmq.utils.monitor import recv_monitor_message, _MonitorMessage
 from video_reader.util import SingletonMeta
 from video_reader.audio import init_audio, audio_samples, read_audio_bytes, audio_finished, release_audio
 
+from pathlib import Path
+Path("temp").mkdir(555,exist_ok=True)
+
 class Messages(str, Enum):
     # hello = "HELLO"
     # ok = "OK"
@@ -136,11 +139,7 @@ class MessageServer:
         await ServerManager()._stop_event.wait()  # 最好能正常结束
         print("[Message Server] Stopping...")
         print("[Message Server] Ending Tasks...")
-        for task in asyncio.as_completed((life_cycle, listen), timeout=5):
-            try:
-                await task
-            except asyncio.TimeoutError:
-                pass
+        await asyncio.gather( asyncio.wait_for(life_cycle,timeout=3), asyncio.wait_for(listen,timeout=3) )
         print("[Message Server] Server Stopped")
 
     async def handle_message(self, message:str):
@@ -247,7 +246,7 @@ class AudioServer(DataServer):
         start_time = time.time()
         sleepTime = (self.samplesPreFrame / self.sr) / 10
         try:
-            while not audio_finished() and not ServerManager()._stop_event.is_set():
+            while not ServerManager()._stop_event.is_set() and not audio_finished():
                 current_time = time.time()
                 if (current_time - start_time) * self.sr < current_samples - self.readThreshold:
                     await asyncio.sleep(sleepTime)
@@ -282,12 +281,17 @@ class ServerManager(metaclass=SingletonMeta[Self]):
         message_task = asyncio.create_task(self.message_server.run())
         self.audio_server = AudioServer()
         audio_task = asyncio.create_task(self.audio_server.run())
-        await ValueSlot.ask_for(ValueName.end)
-        self._stop_event.set()
+        end_task = asyncio.create_task(self.wait_end())
         await self._stop_event.wait()
         print("Stop Event is Set")
         await asyncio.gather(message_task, audio_task)
+        if not end_task.done():
+            end_task.cancel()
         print("All Server Stopped")
+
+    async def wait_end(self):
+        await ValueSlot.ask_for(ValueName.end)
+        self._stop_event.set()
 
     def register_signal(self):
         import signal
