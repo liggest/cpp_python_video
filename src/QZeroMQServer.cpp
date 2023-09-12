@@ -28,7 +28,7 @@ void QZeroMQServer::serve() {
     zmq::context_t context(2);
     zmq::socket_t socket(context, zmq::socket_type::pair);
     std::cout << "Setting up audio server..." << std::endl;
-    socket.bind("ipc://../py/audio_player.ipc");
+    socket.bind("ipc://../py/temp/audio_player.ipc");
     //socket.bind("tcp://localhost:5555");
 
     const char* audio_path = "../resource/audio.mp3";
@@ -77,9 +77,9 @@ void QZeroMQServer::serve() {
     
     long long readSamples = 0;
     long long currentTimeSec = 0;
-    long samplesPreRead = sampleRate / 8;
-    const long readThreshold = samplesPreRead / 2;
-    const long sleepMs = 1000 / 30;
+    long samplesPreRead = sampleRate / 16;
+    const long readThreshold = sampleRate / 2;
+    const long sleepMs = 1000 / 16;
 
     AudioPlayer audioPlayer;
     QThread audioThread;
@@ -108,16 +108,20 @@ void QZeroMQServer::serve() {
     std::cout << "Start Reading..." << std::endl;
 
     std::string readString = "READ ";
-    readString.append(std::to_string(samplesPreRead)); // "OK {audio_path}"
+    readString.append(std::to_string(samplesPreRead)); // "READ {audio_path}"
     zmq::recv_result_t readResult;
 
     auto startTime = std::chrono::system_clock::now();
+    auto timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(startTime).time_since_epoch();
+
+    long long communicationLatency = 0;
+    long readTimes = 0;
+    long outThreshold = 0;
 
     while (readSamples < totalSamples)
     {
         auto now = std::chrono::system_clock::now();
-        auto duration = now - startTime;
-        long long msPassed = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        long long msPassed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
         if (msPassed * sampleRate / 1000 < readSamples - readThreshold)  // 还有的播，就先不读
         {
             QThread::msleep(sleepMs);
@@ -137,14 +141,26 @@ void QZeroMQServer::serve() {
             continue;
         }
         zmq::message_t &dataMsg = parts.at(0);
-        unsigned long long timeNs;
+        uint64_t ns;
 
         // 将字节数组复制到变量中
-        std::memcpy(&timeNs, parts.at(0).data(), sizeof(timeNs));
+        std::memcpy(&ns, parts.at(1).data(), sizeof(ns));
 
-        std::cout << "Received Time " << timeNs << std::endl;
+        //std::cout << "Received Time " << ns << std::endl;
+        std::chrono::nanoseconds timeNsPY(ns);
+        now = std::chrono::system_clock::now();
+        timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch();
 
-        emit QZeroMQServer::readData((char*)dataMsg.data(), dataMsg.size(), timeNs);
+
+        communicationLatency += (timeNs - timeNsPY).count();
+        readTimes += 1;
+        bool isOut = msPassed / 1000 > outThreshold;
+        if (isOut) {
+            std::cout << "[Latency (ns)] Communication: " << communicationLatency << " \tAverage: " << communicationLatency / readTimes << " \treadTimes: " << readTimes << std::endl;
+            outThreshold++;
+        }
+
+        emit QZeroMQServer::readData((char*)dataMsg.data(), dataMsg.size(), timeNsPY, isOut ? readTimes : 0);
 
         readSamples += samplesPreRead;
         //currentTimeSec = readSamples / sampleRate;

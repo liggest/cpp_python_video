@@ -12,6 +12,7 @@ dependencies = [
     "sounddevice>=0.4.6",
     "soundfile>=0.12.1",
     "pyzmq>=25.1.1",
+    "typing-extensions>=4.7.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

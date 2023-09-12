@@ -14,12 +14,15 @@ public:
 	QAudioSink* sink = nullptr;
 	QIODevice* audioIO = nullptr;
 
+	long long totalLatency = 0;
+
 public slots:
 	int init(int sampleRate, int channels);
-	void readData(const char* data, size_t size, long long timeNs);
+	void readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes);
 
 signals:
 	void startRead();
+
 };
 
 
