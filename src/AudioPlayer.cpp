@@ -47,8 +47,8 @@ void AudioPlayer::readData(const char* data, size_t size, std::chrono::nanosecon
 	QByteArray audioData(data, size);
 	audioIO->write(audioData);
 	//audioIO->write(data, size);
-	auto now = std::chrono::system_clock::now();
-	auto timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch();
+	now = std::chrono::system_clock::now();
+	timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch();
 	totalLatency += (timeNs - timeNsPY).count();
 	if (readTimes) {
 		std::cout << "[Latency (ns)] Total: " << totalLatency << " \tAverage: " << totalLatency / readTimes << " \treadTimes: " << readTimes << std::endl;
