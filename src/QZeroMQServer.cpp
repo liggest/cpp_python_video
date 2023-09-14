@@ -34,7 +34,7 @@ void QZeroMQServer::serve() {
     {
         std::cout << "Receiving Hello..." << std::endl;
         helloResult = socket.recv(helloMsg);
-        if (!(helloResult.has_value() && helloMsg.to_string_view().find_first_of("HELLO ") == 0)) {
+        if (!(helloResult.has_value() && helloMsg.to_string_view().find("HELLO ") == 0)) {
             //std::this_thread::sleep_for(std::chrono::seconds(1));  // 每秒尝试一次
             QThread::sleep(1);
             continue;
@@ -54,7 +54,7 @@ void QZeroMQServer::serve() {
             
         std::cout << "Receiving Ready..." << std::endl;
         okResult = socket.recv(okAnswer);
-        if (!(okResult.has_value() && okAnswer.to_string_view().find_first_of("READY ") == 0)) {
+        if (!(okResult.has_value() && okAnswer.to_string_view().find("READY ") == 0)) {
             continue;
         }
 

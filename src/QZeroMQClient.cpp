@@ -8,7 +8,7 @@
 QZeroMQClient::QZeroMQClient(QObject* parent) : QObject(parent) { }
 
 bool startsWith(std::string s, std::string prefix) {
-	return s._Starts_with(prefix);
+	return s.find(prefix) == 0;
 }
 
 void QZeroMQClient::serve() {
@@ -136,6 +136,8 @@ void QZeroMQClient::serve() {
 
 		readSamples += dataMsg.size() / 4; // int16 (2 byte) + 2 channels (2 byte)
 	}
+
+	post("SET END TRUE");
 
 	audioThread.wait();
 

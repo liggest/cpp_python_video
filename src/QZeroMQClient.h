@@ -17,8 +17,9 @@ public:
 signals:
 	int init(int sampleRate, int channels);
 	void readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes);
+	void readByteArray(QByteArray& data, std::chrono::nanoseconds timeNsPY, long readTimes);
 
-private:
+protected:
 	zmq::socket_t messageSocket;
 	zmq::socket_t audioSocket;
 
