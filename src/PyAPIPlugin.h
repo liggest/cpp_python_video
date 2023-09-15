@@ -1,6 +1,8 @@
 #ifndef PYAPIPLUGIN_H
 #define PYAPIPLUGIN_H
 
+#include <QApplication>
+
 #include "Plugin.h"
 
 class PyAPIPlugin : public Plugin

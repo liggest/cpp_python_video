@@ -7,10 +7,6 @@
 
 QZeroMQClient::QZeroMQClient(QObject* parent) : QObject(parent) { }
 
-bool startsWith(std::string s, std::string prefix) {
-	return s.find(prefix) == 0;
-}
-
 void QZeroMQClient::serve() {
 	ZeroMQHelper::printVersion();
 
@@ -30,23 +26,13 @@ void QZeroMQClient::serve() {
 	}
 
 	if (startsWith(status, "GET")) {
+		std::istringstream names(status);
 		std::ostringstream values;
 		values << "SET";
-		std::string names = status.substr(strlen("GET "));
-		size_t spaceIdx;
 		std::string name, value;
-		while (!names.empty())
+		names >> name; // é™¤åŽ» GET
+		while (names >> name)
 		{
-			std::cout << "names: " << names << std::endl;
-			spaceIdx = names.find_first_of(' ');
-			if (spaceIdx != std::string::npos) {
-				name = names.substr(0, spaceIdx);
-				names = names.substr(spaceIdx + 1);
-			}
-			else {
-				name = names;
-				names = std::string(); // ×îºóÒ»¸öÁË
-			}
 			std::cout << "name: " << name << std::endl;
 			value = getValue(name);
 			if (value.empty()) continue;
@@ -64,11 +50,11 @@ void QZeroMQClient::serve() {
 	}
 
 	std::string setMessage = post("GET AUDIO_INFO");
-	std::stringstream sStream(setMessage.substr(strlen("SET AUDIO_INFO ")));
+	std::istringstream sStream(setMessage.substr(strlen("SET AUDIO_INFO ")));
 	sStream >> sampleRate;
-	sStream.ignore(1);
+	sStream.ignore(1);  // åˆ†éš”ç¬¦ '|'
 	sStream >> totalSamples;
-	sStream.ignore(1);  
+	sStream.ignore(1);  // åˆ†éš”ç¬¦ '|'
 	sStream >> channels;
 	std::cout << "sampleRate: " << sampleRate << " totalSamples: " << totalSamples << " channels: " << channels << std::endl;
 	//sStream.ignore(1)
@@ -166,4 +152,8 @@ std::string QZeroMQClient::getValue(std::string name) {
 		return "../resource/audio.mp3";
 	}
 	return std::string();
+}
+
+bool QZeroMQClient::startsWith(std::string s, std::string prefix) {
+	return s.find(prefix) == 0;
 }

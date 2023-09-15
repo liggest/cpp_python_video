@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable
+from typing import Callable, Protocol
 from typing_extensions import Self
 
 import time
@@ -189,9 +189,9 @@ class MessageServer:
 
 class DataServer:
 
-    def __init__(self, endpoint:str):
+    def __init__(self, endpoint:str, socket_type=zmq.PUB):  
         self.context = Context()
-        self.socket = self.context.socket(zmq.PUB)  # 广播数据
+        self.socket = self.context.socket(socket_type)      # 默认广播数据
         self.endpoint = endpoint
 
     @property
@@ -206,13 +206,13 @@ class DataServer:
     async def run(self):
         await self.init()
         await self.ask_for_values()
-        await self.send_data()
+        await self.deal_data()
         print(f"[{self.name}] Server Stopped")
 
     async def ask_for_values(self):
         raise NotImplementedError
 
-    async def send_data(self):
+    async def deal_data(self):
         raise NotImplementedError
 
 class AudioServer(DataServer):
@@ -239,7 +239,7 @@ class AudioServer(DataServer):
         await ready_task
         print(f"[{self.name}] Ready to Send")
 
-    async def send_data(self):
+    async def deal_data(self):
         # ServerManager().status = ServerStatus.Playing
         print(f"[{self.name}] Start Sending")
         current_samples = 0
@@ -262,12 +262,18 @@ class AudioServer(DataServer):
             release_audio()
             print(f"[{self.name}] Released")
 
+class Runnable(Protocol):
+    async def run(self):
+        ...
+
 class ServerStatus(Enum):
     Idle = 0
     NeedValue = 1
     Playing = 2
 
 class ServerManager(metaclass=SingletonMeta[Self]):
+
+    servers:list[type[Runnable]] = [MessageServer, AudioServer]
 
     def __init__(self):
         # print("Server Manager Init")
@@ -277,14 +283,20 @@ class ServerManager(metaclass=SingletonMeta[Self]):
     async def run(self):
         print("ZeroMQ version", zmq.zmq_version())
         self.register_signal()
-        self.message_server = MessageServer()
-        message_task = asyncio.create_task(self.message_server.run())
-        self.audio_server = AudioServer()
-        audio_task = asyncio.create_task(self.audio_server.run())
+        self.server_tasks:dict[Runnable, asyncio.Task] = {
+            (server := server_cls()): asyncio.create_task(server.run()) 
+            for server_cls in self.servers
+        }
+        # self.message_server = MessageServer()
+        # message_task = asyncio.create_task(self.message_server.run())
+        # self.audio_server = AudioServer()
+        # audio_task = asyncio.create_task(self.audio_server.run())
         end_task = asyncio.create_task(self.wait_end())
         await self._stop_event.wait()
         print("Stop Event is Set")
-        await asyncio.gather(message_task, audio_task)
+        # await asyncio.gather(message_task, audio_task)
+        if self.server_tasks:
+            await asyncio.gather(*self.server_tasks.values())
         if not end_task.done():
             end_task.cancel()
         print("All Server Stopped")

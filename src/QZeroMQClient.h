@@ -25,6 +25,7 @@ protected:
 
 	std::string post(std::string message);
 	std::string getValue(std::string name);
+	static bool startsWith(std::string s, std::string prefix);
 };
 
 

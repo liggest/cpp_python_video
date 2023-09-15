@@ -51,7 +51,7 @@ int AudioInputter::init(int sampleRate, int channels) {
 	//	std::cout << "isOpen: " << audioIO->isOpen() << std::endl;
 	//	std::cout << "isReadable: " << audioIO->isReadable() << std::endl;
 	//	std::cout << "size: " << audioIO->size() << std::endl;
-	//	//audioIO->seek(0);
+	//	audioIO->seek(0);
 	//	std::cout << "bytesAvailable: " << audioIO->bytesAvailable() << std::endl;
 	//	std::cout << "bytesToWrite: " << audioIO->bytesToWrite() << std::endl;
 	//	//std::cout << "buffer: " << buffer->size() << std::endl;

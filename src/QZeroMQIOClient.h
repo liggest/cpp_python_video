@@ -12,6 +12,13 @@ class QZeroMQIOClient : public QZeroMQClient
 public:
 
 	void serve();
+
+protected:
+
+	zmq::socket_t audioSendSocket;
+	zmq::socket_t audioReceiveSocket;
+
+	std::string getValue(std::string name);
 };
 
 

@@ -13,8 +13,9 @@ public:
 	~AudioInputter();
 
 	QAudioSource* source = nullptr;
-	QBuffer* audioIO = nullptr;
-	QByteArray* buffer = nullptr;
+	//QBuffer* audioIO = nullptr;
+	QIODevice* audioIO = nullptr;
+	//QByteArray* buffer = nullptr;
 
 public slots:
 	int init(int sampleRate, int channels);
