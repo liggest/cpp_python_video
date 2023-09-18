@@ -3,27 +3,19 @@
 
 #include <QThread>
 
-#include <zmq.hpp>
-#include <zmq_addon.hpp>
-
 #include "QZeroMQServer.h"
 #include "AudioPlayer.h"
+#include "ZeroMQHelper.h"
 
 QZeroMQServer::QZeroMQServer(QObject* parent) : QObject(parent) { }
 
-void QZeroMQServer::printVersion() {
-    int major, minor, patch;
-    zmq_version(&major, &minor, &patch);
-    std::cout << "Current 0MQ version is " << major << "." << minor << "." << patch << std::endl;
-}
-
-void QZeroMQServer::startRead() {
-    std::cout << "Ready to Read!" << std::endl;
-    readyToRead = true;
-}
+//void QZeroMQServer::startRead() {
+//    std::cout << "Ready to Read!" << std::endl;
+//    readyToRead = true;
+//}
 
 void QZeroMQServer::serve() {
-    printVersion();
+    ZeroMQHelper::printVersion();
     //  Prepare our context and socket
     zmq::context_t context(2);
     zmq::socket_t socket(context, zmq::socket_type::pair);
@@ -42,7 +34,7 @@ void QZeroMQServer::serve() {
     {
         std::cout << "Receiving Hello..." << std::endl;
         helloResult = socket.recv(helloMsg);
-        if (!(helloResult.has_value() && helloMsg.to_string_view().find_first_of("HELLO ") == 0)) {
+        if (!(helloResult.has_value() && helloMsg.to_string_view().find("HELLO ") == 0)) {
             //std::this_thread::sleep_for(std::chrono::seconds(1));  // 每秒尝试一次
             QThread::sleep(1);
             continue;
@@ -62,7 +54,7 @@ void QZeroMQServer::serve() {
             
         std::cout << "Receiving Ready..." << std::endl;
         okResult = socket.recv(okAnswer);
-        if (!(okResult.has_value() && okAnswer.to_string_view().find_first_of("READY ") == 0)) {
+        if (!(okResult.has_value() && okAnswer.to_string_view().find("READY ") == 0)) {
             continue;
         }
 
@@ -88,7 +80,7 @@ void QZeroMQServer::serve() {
     connect(this, &QZeroMQServer::init, &audioPlayer, &AudioPlayer::init, Qt::ConnectionType::BlockingQueuedConnection);
     //connect(this, &QZeroMQServer::readData, &audioPlayer, &AudioPlayer::readData, Qt::ConnectionType::BlockingQueuedConnection);
     connect(this, &QZeroMQServer::readData, &audioPlayer, &AudioPlayer::readData);
-    connect(&audioPlayer, &AudioPlayer::startRead, this, &QZeroMQServer::startRead);
+    //connect(&audioPlayer, &AudioPlayer::startRead, this, &QZeroMQServer::startRead);
 
     audioThread.start();
 
@@ -137,7 +129,7 @@ void QZeroMQServer::serve() {
         //readResult = zmq::recv_multipart(socket, &parts);
         readResult = zmq::recv_multipart(socket, std::back_inserter(parts));
         if (!readResult) {
-            std::cout << "Bad Multiparts" << std::endl;
+            std::cerr << "Bad Multiparts" << std::endl;
             continue;
         }
         zmq::message_t &dataMsg = parts.at(0);
@@ -167,4 +159,6 @@ void QZeroMQServer::serve() {
     }
 
     audioThread.wait();
+
+    std::cout << "Audio Thread End" << std::endl;
 }

@@ -12,7 +12,7 @@ ZeroMQPairPlugin::ZeroMQPairPlugin(QApplication* _app) : app(_app) {}
 int ZeroMQPairPlugin::run()
 {
     QZeroMQServer server;
-    QThread audioThread;
+    //QThread audioThread;
     QThread* serverThread = QThread::create([&]() {
         server.serve();
         });

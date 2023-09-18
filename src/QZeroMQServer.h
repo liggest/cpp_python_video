@@ -10,19 +10,17 @@ class QZeroMQServer : public QObject
 public:
 	explicit QZeroMQServer(QObject* parent = nullptr);
 
-	void printVersion();
-
 	void serve();
 
-public slots:
-	void startRead();
+//public slots:
+//	void startRead();
 
 signals:
 	int init(int sampleRate, int channels);
 	void readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes);
 
-private:
-	bool readyToRead = false;
+//private:
+//	bool readyToRead = false;
 };
 
 

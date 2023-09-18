@@ -1,22 +1,22 @@
 #include <iostream>
-#include <chrono>
-#include <thread>
+//#include <chrono>
+//#include <thread>
 
 #include <QThread>
 
 #include "ZeroMQPlugin.h"
-#include "QZeroMQServer.h"
+#include "QZeroMQClient.h"
 
 ZeroMQPlugin::ZeroMQPlugin(QApplication* _app) : app(_app) {}
 
 int ZeroMQPlugin::run()
 {
-    QZeroMQServer server;
-    QThread audioThread;
-    QThread* serverThread = QThread::create([&]() {
-        server.serve();
+    QZeroMQClient client;
+    //QThread audioThread;
+    QThread* clientThread = QThread::create([&]() {
+        client.serve();
         });
-    server.moveToThread(serverThread);
+    client.moveToThread(clientThread);
     
 
 
@@ -36,11 +36,12 @@ int ZeroMQPlugin::run()
     //    socket.send (reply, zmq::send_flags::none);
     //}
 
-    serverThread->start();
+
+    clientThread->start();
 
     int ret = app->exec();
 
-    serverThread->wait();
+    clientThread->wait();
 
     return ret;
 }

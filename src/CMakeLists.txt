@@ -45,7 +45,7 @@ find_package(Qt6 COMPONENTS Core Widgets Gui Multimedia REQUIRED )
 find_package(cppzmq)
 
 # 生成可执行文件
-add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp ZeroMQPlugin.cpp AudioPlayer.cpp QZeroMQServer.cpp ZeroMQPairPlugin.cpp)
+add_executable(${PROJECT_NAME} main.cpp VideoWidget.cpp Plugin.cpp PyAPIPlugin.cpp PluginManager.cpp ZeroMQPlugin.cpp AudioPlayer.cpp QZeroMQServer.cpp ZeroMQPairPlugin.cpp ZeroMQHelper.cpp QZeroMQClient.cpp AudioInputter.cpp ZeroMQIOPlugin.cpp QZeroMQIOClient.cpp)
 
 # 链接头文件和库
 # include_directories(${PYTHON_INCLUDE_DIRS})

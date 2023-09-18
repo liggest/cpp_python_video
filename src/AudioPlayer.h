@@ -19,10 +19,14 @@ public:
 public slots:
 	int init(int sampleRate, int channels);
 	void readData(const char* data, size_t size, std::chrono::nanoseconds timeNsPY, long readTimes);
+	void readByteArray(QByteArray& data, std::chrono::nanoseconds timeNsPY, long readTimes);
 
-signals:
-	void startRead();
+//signals:
+//	void startRead();
 
+private:
+	std::chrono::system_clock::time_point now;
+	std::chrono::nanoseconds timeNs;
 };
 
 
