@@ -19,7 +19,7 @@
 
 #include "PyAPIPlugin.h"
 
-PyAPIPlugin::PyAPIPlugin(QApplication *_app) : app(_app) {}
+PyAPIPlugin::PyAPIPlugin(QApplication* _app) : app(_app) {}
 
 void PyAPIPlugin::playAudio() {
 	//std::string command = "ffplay -vn -nodisp -loglevel quiet -i \"../resource/video.mp4\"";
@@ -38,7 +38,7 @@ void PyAPIPlugin::playAudio() {
 	//QAudioSink audioSink(device, format);
 	//QIODevice* audioIO = audioSink.start();
 	//QIODevice* audioIO = audioOutput.start();
-	
+
 }
 
 long msToSamples(long ms, int sampleRate) {
@@ -46,15 +46,15 @@ long msToSamples(long ms, int sampleRate) {
 }
 
 std::wstring getEnvVarAsWstring(const wchar_t* name) {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    const char* value = std::getenv(converter.to_bytes(name).c_str());
-    return value ? converter.from_bytes(value) : L"";
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	const char* value = std::getenv(converter.to_bytes(name).c_str());
+	return value ? converter.from_bytes(value) : L"";
 }
 
 void setEnvVarAsWstring(const wchar_t* name, const std::wstring& value) {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::string name_str = converter.to_bytes(name);
-    std::string value_str = converter.to_bytes(value);
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::string name_str = converter.to_bytes(name);
+	std::string value_str = converter.to_bytes(value);
 #ifdef _WIN32
 	_putenv_s(name_str.c_str(), value_str.c_str());
 #else
@@ -64,42 +64,42 @@ void setEnvVarAsWstring(const wchar_t* name, const std::wstring& value) {
 
 // Get path of .venv
 int getPythonPath(std::filesystem::path& pythonPath) {
-    std::error_code ec;
-    std::filesystem::path cwd = std::filesystem::current_path(ec);
-    if (ec) {
-        std::cerr << "Cannot get current working directory" << std::endl;
-        return 1;
-    }
+	std::error_code ec;
+	std::filesystem::path cwd = std::filesystem::current_path(ec);
+	if (ec) {
+		std::cerr << "Cannot get current working directory" << std::endl;
+		return 1;
+	}
 
-    std::filesystem::path parent = cwd.parent_path();
-    std::cout << "parent path: " << parent << std::endl;
+	std::filesystem::path parent = cwd.parent_path();
+	std::cout << "parent path: " << parent << std::endl;
 
-    std::filesystem::path pyPath = parent / "py" / ".venv";
-    std::cout << "python path: " << pyPath << std::endl;
+	std::filesystem::path pyPath = parent / "py" / ".venv";
+	std::cout << "python path: " << pyPath << std::endl;
 
-    pythonPath = pyPath;
-    return 0;
+	pythonPath = pyPath;
+	return 0;
 }
 // Add .venv to PATH
 void addPythonPath(const std::filesystem::path& pythonPath) {
 	std::wcout.imbue(std::locale(""));
 #ifdef _WIN32
-    // because windows can run, we don't change
-    // Add python path to PATH
+	// because windows can run, we don't change
+	// Add python path to PATH
 
 	// Get current PATH
 	std::wstring path_env = _wgetenv(L"PATH");
 
 	// Print current PATH
 	//std::wcout << L"Current PATH: " << path_env << std::endl;
-    //wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+	//wprintf(L"PATH=%s", _wgetenv(L"PATH"));
 
 	// Add python path to PATH
 	std::wcout << L"Adding python path to PATH" << std::endl;
 	std::wstring envPath;
 
 	envPath = pythonPath.wstring().append(L";").append(path_env);
-    //envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
+	//envPath.append(path).append(L";").append(_wgetenv(L"PATH"));
 
 	// Set updated PATH
 	_wputenv_s(L"PATH", envPath.c_str());
@@ -107,37 +107,37 @@ void addPythonPath(const std::filesystem::path& pythonPath) {
 	// Print updated PATH
 	//std::wcout << L"Updated PATH: " << _wgetenv(L"PATH") << std::endl;
 
-    //std::wcout << L"path: " << path << std::endl;
-    //std::wcout << L"envPath: " << envPath << std::endl;
-    //std::wcout << L"==================================" << std::endl;
-    //wprintf(L"PATH=%s", _wgetenv(L"PATH"));
+	//std::wcout << L"path: " << path << std::endl;
+	//std::wcout << L"envPath: " << envPath << std::endl;
+	//std::wcout << L"==================================" << std::endl;
+	//wprintf(L"PATH=%s", _wgetenv(L"PATH"));
 #else
-    //std::wcout.imbue(std::locale(""));
-    //std::wstring path = pythonPath.wstring();
+	//std::wcout.imbue(std::locale(""));
+	//std::wstring path = pythonPath.wstring();
 
-    // Get current PATH
-    std::wstring path_env = getEnvVarAsWstring(L"PATH");
+	// Get current PATH
+	std::wstring path_env = getEnvVarAsWstring(L"PATH");
 
-    // Print current PATH
-    //std::wcout << L"Current PATH: " << path_env << std::endl;
+	// Print current PATH
+	//std::wcout << L"Current PATH: " << path_env << std::endl;
 
-    // Add python path to PATH
-    std::wcout << L"Adding python path to PATH" << std::endl;
-    std::wstring envPath;
+	// Add python path to PATH
+	std::wcout << L"Adding python path to PATH" << std::endl;
+	std::wstring envPath;
 
-    envPath = (pythonPath / "lib").wstring() + L":" + path_env;
+	envPath = (pythonPath / "lib").wstring() + L":" + path_env;
 
-    // Set updated PATH
-    setEnvVarAsWstring(L"PATH", envPath);
+	// Set updated PATH
+	setEnvVarAsWstring(L"PATH", envPath);
 
-    // Print updated PATH
-    //std::wcout << L"Updated PATH: " << getEnvVarAsWstring(L"PATH") << std::endl;
+	// Print updated PATH
+	//std::wcout << L"Updated PATH: " << getEnvVarAsWstring(L"PATH") << std::endl;
 #endif
 
 }
 
 void initPython() {
-    std::filesystem::path path;
+	std::filesystem::path path;
 	getPythonPath(path);
 	addPythonPath(path);
 
@@ -434,11 +434,11 @@ int PyAPIPlugin::run() {
 		std::cout << "Thread Starting" << std::endl;
 		//QAudioOutput audioOutput(device, format);
 		QAudioSink audioSink(device, format);
-        audioSink.setBufferSize(sampleRate * 2);  // 暂时设成采样率的 2 倍 sr 48000 buffer 96000
+		audioSink.setBufferSize(sampleRate * 2);  // 暂时设成采样率的 2 倍 sr 48000 buffer 96000
 		//QIODevice* audioIO = audioOutput.start();
 		QIODevice* audioIO = audioSink.start();
 		Py_BEGIN_ALLOW_THREADS
-		PyGILState_STATE gstate = PyGILState_Ensure();  // 获取 GIL
+			PyGILState_STATE gstate = PyGILState_Ensure();  // 获取 GIL
 		pAudioRetVal = PyObject_CallObject(pReadAudio, PyTuple_Pack(1, PyLong_FromLong(msToSamples(oneFrameMs, sampleRate))));
 		PyObject* pAudioData = PyTuple_GetItem(pAudioRetVal, 0);
 		PyObject* pAudioByte = PyArray_ToString((PyArrayObject*)pAudioData, NPY_ORDER::NPY_CORDER);
@@ -452,7 +452,7 @@ int PyAPIPlugin::run() {
 		QByteArray audioData(PyBytes_AsString(pAudioByte), PyBytes_Size(pAudioByte));
 		audioIO->write(audioData);
 		long timeReadMs = oneFrameMs;
-		while(true) {
+		while (true) {
 			if (pRetVal != nullptr) {
 				Py_DECREF(pRetVal);
 			}
@@ -463,7 +463,7 @@ int PyAPIPlugin::run() {
 			//std::cout << "! 1" << std::endl;
 
 			pRetVal = PyObject_CallObject(pReadVideo, nullptr);
-			
+
 			PyObject* pIsRead = PyTuple_GetItem(pRetVal, 0);
 
 			if (pIsRead == Py_False) {
@@ -491,7 +491,7 @@ int PyAPIPlugin::run() {
 				PyErr_Print();
 				// TODO 还不知道怎么处理
 			}
-			
+
 			oneFrameMs = newFileTimeMs - fileTimeMs;
 			pAudioRetVal = PyObject_CallObject(pReadAudio, PyTuple_Pack(1, PyLong_FromLong(msToSamples(oneFrameMs, sampleRate))));
 			pAudioData = PyTuple_GetItem(pAudioRetVal, 0);
@@ -514,7 +514,7 @@ int PyAPIPlugin::run() {
 			QImage image((uchar*)PyArray_DATA(pFrameArray), cols, rows, QImage::Format_BGR888);
 
 			//std::cout << "! 3" << std::endl;
-			
+
 			// 在 VideoWidget 中显示视频帧
 			videoWidget.setImage(image);
 
@@ -547,7 +547,7 @@ int PyAPIPlugin::run() {
 		}
 		Py_END_ALLOW_THREADS
 		});
-	
+
 	// 在 Qt 槽中连接 QTimer 的超时信号
 	//QObject::connect(&timer, &QTimer::timeout, [&]() {
 	//	if (pRetVal != nullptr) {
@@ -602,7 +602,7 @@ int PyAPIPlugin::run() {
 
 	// 运行 Qt 应用
 	int ret = app->exec();
-	
+
 	//video_thread->wait();
 	video_thread.join();
 	//audio_thread.join();

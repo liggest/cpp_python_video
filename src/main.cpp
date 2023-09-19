@@ -7,15 +7,15 @@
 #include "PluginManager.h"
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
 
-    //PyAPIPlugin plugin = PyAPIPlugin(&app);
+	//PyAPIPlugin plugin = PyAPIPlugin(&app);
 	//ZeroMQPlugin plugin = ZeroMQPlugin(&app);
 	ZeroMQIOPlugin plugin = ZeroMQIOPlugin(&app);
 	//ZeroMQPairPlugin plugin = ZeroMQPairPlugin(&app);
 	PluginManager pm(&plugin);
-	
+
 	int ret = pm.run();
 	return ret;
 }

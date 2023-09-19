@@ -11,38 +11,38 @@ ZeroMQPlugin::ZeroMQPlugin(QApplication* _app) : app(_app) {}
 
 int ZeroMQPlugin::run()
 {
-    QZeroMQClient client;
-    //QThread audioThread;
-    QThread* clientThread = QThread::create([&]() {
-        client.serve();
-        });
-    client.moveToThread(clientThread);
-    
+	QZeroMQClient client;
+	//QThread audioThread;
+	QThread* clientThread = QThread::create([&]() {
+		client.serve();
+		});
+	client.moveToThread(clientThread);
 
 
-    //while (true) {
-    //    zmq::message_t request;
 
-    //    //  Wait for next request from client
-    //    socket.recv (request, zmq::recv_flags::none);
-    //    std::cout << "Received Hello" << std::endl;
+	//while (true) {
+	//    zmq::message_t request;
 
-    //    //  Do some 'work'
-    //    std::this_thread::sleep_for(std::chrono::seconds(1));
+	//    //  Wait for next request from client
+	//    socket.recv (request, zmq::recv_flags::none);
+	//    std::cout << "Received Hello" << std::endl;
 
-    //    //  Send reply back to client
-    //    zmq::message_t reply (5);
-    //    memcpy (reply.data (), "World", 5);
-    //    socket.send (reply, zmq::send_flags::none);
-    //}
+	//    //  Do some 'work'
+	//    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	//    //  Send reply back to client
+	//    zmq::message_t reply (5);
+	//    memcpy (reply.data (), "World", 5);
+	//    socket.send (reply, zmq::send_flags::none);
+	//}
 
 
-    clientThread->start();
+	clientThread->start();
 
-    int ret = app->exec();
+	int ret = app->exec();
 
-    clientThread->wait();
+	clientThread->wait();
 
-    return ret;
+	return ret;
 }
 

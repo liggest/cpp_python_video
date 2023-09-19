@@ -29,7 +29,7 @@ int AudioPlayer::init(int sampleRate, int channels) {
 	}
 	std::cout << "Output Format Channels: " << format.channelCount() << std::endl;
 	std::cout << "Output Format Sampling Rate: " << format.sampleRate() << std::endl;
-	
+
 	sink = new QAudioSink(device, format, this);
 	sink->setBufferSize(sampleRate * 2);  // 暂时设成采样率的 2 倍 sr 48000 buffer 96000
 	std::cout << "Output Buffer Size: " << sink->bufferSize() << std::endl;

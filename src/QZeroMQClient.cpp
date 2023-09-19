@@ -58,7 +58,7 @@ void QZeroMQClient::serve() {
 	sStream >> channels;
 	std::cout << "sampleRate: " << sampleRate << " totalSamples: " << totalSamples << " channels: " << channels << std::endl;
 	//sStream.ignore(1)
-	
+
 	AudioPlayer audioPlayer;
 	QThread audioThread;
 	audioPlayer.moveToThread(&audioThread);
@@ -88,7 +88,7 @@ void QZeroMQClient::serve() {
 	long readTimes = 0;
 	auto now = std::chrono::system_clock::now();
 	auto timeNs = std::chrono::time_point_cast<std::chrono::nanoseconds>(now).time_since_epoch();
-	
+
 	std::cout << "Start Reading..." << std::endl;
 
 	post("SET AUDIO_READY TRUE");

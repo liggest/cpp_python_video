@@ -12,18 +12,18 @@ ZeroMQIOPlugin::ZeroMQIOPlugin(QApplication* _app) : app(_app) {}
 
 int ZeroMQIOPlugin::run()
 {
-    QZeroMQIOClient client;
-    QThread* clientThread = QThread::create([&]() {
-        client.serve();
-        });
-    client.moveToThread(clientThread);
+	QZeroMQIOClient client;
+	QThread* clientThread = QThread::create([&]() {
+		client.serve();
+		});
+	client.moveToThread(clientThread);
 
-    clientThread->start();
+	clientThread->start();
 
-    int ret = app->exec();
+	int ret = app->exec();
 
-    clientThread->wait();
+	clientThread->wait();
 
-    return ret;
+	return ret;
 }
 

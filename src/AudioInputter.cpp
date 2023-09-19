@@ -44,7 +44,7 @@ int AudioInputter::init(int sampleRate, int channels) {
 	source->start(audioIO);
 
 	//audioIO = source->start();
-	
+
 	//connect(audioIO, &QIODevice::readyRead, this, [&]() {
 	//	std::cout << "QIODevice::readyRead" << std::endl;
 	//	std::cout << "Error: " << audioIO->errorString().toLocal8Bit().toStdString() << std::endl;
@@ -62,6 +62,6 @@ int AudioInputter::init(int sampleRate, int channels) {
 	std::cout << "Write Channel Count " << audioIO->writeChannelCount() << std::endl;
 
 	std::cout << "AudioSource is Ready" << std::endl;
-	
+
 	return 0;
 }

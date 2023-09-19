@@ -9,14 +9,14 @@ class PyAPIPlugin : public Plugin
 {
 
 public:
-	PyAPIPlugin(QApplication *app);
+	PyAPIPlugin(QApplication* app);
 
 	static void playAudio();
 
 	int run();
 
 private:
-	QApplication *app;
+	QApplication* app;
 };
 
 #endif

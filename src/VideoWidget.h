@@ -9,12 +9,12 @@ class VideoWidget : public QWidget
 {
 
 public:
-	explicit VideoWidget(QWidget *parent = nullptr);
-	void setImage(const QImage &image);
+	explicit VideoWidget(QWidget* parent = nullptr);
+	void setImage(const QImage& image);
 	void copyImage();
 
 protected:
-	void paintEvent(QPaintEvent *event) override;
+	void paintEvent(QPaintEvent* event) override;
 
 private:
 	QImage m_image;
